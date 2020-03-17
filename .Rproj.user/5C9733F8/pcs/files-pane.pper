@@ -1,0 +1,9 @@
+{
+    "path" : "~/Hetzner/CoronaVIZ/COVID-19-master/csse_covid_19_data/csse_covid_19_daily_reports",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}

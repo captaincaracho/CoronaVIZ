@@ -1,0 +1,33 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1584444318362.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "2553CBFE",
+    "lastKnownWriteTime" : 1817410381664,
+    "last_content_update" : 1584444318362,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "1AFF8495",
+        "caption" : "focus",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=focus&cache_key=1AFF8495",
+        "displayedObservations" : "55",
+        "environment" : "",
+        "expression" : "focus",
+        "object" : "focus",
+        "preview" : "0",
+        "totalObservations" : "55",
+        "variables" : "18"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 12,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

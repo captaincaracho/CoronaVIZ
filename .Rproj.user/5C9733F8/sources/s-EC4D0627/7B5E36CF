@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1584188835801.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "7B5E36CF",
+    "lastKnownWriteTime" : 1584188848,
+    "last_content_update" : 1584188848128,
+    "path" : "~/Hetzner/CoronaVIZ/Display Worldmap.R",
+    "project_path" : "Display Worldmap.R",
+    "properties" : {
+        "cursorPosition" : "12,65",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

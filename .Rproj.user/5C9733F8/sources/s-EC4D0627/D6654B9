@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1584188089998.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "D6654B9",
+    "lastKnownWriteTime" : 1584439841,
+    "last_content_update" : 1584439841742,
+    "path" : "~/Hetzner/CoronaVIZ/Display.R",
+    "project_path" : "Display.R",
+    "properties" : {
+        "cursorPosition" : "109,49",
+        "scrollLine" : "87",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,90 @@
+
+###############################################################################################
+library(shiny)
+library(lubridate)
+library(shinyWidgets)
+
+ui <-  fluidPage(
+  
+  titlePanel("Battles of History"),
+  
+  leafletOutput("map", width = "100%", height = 400),
+  
+  
+  fluidRow(
+    
+    column(6,
+           
+           pickerInput(inputId = "war",
+                       label = "Select War",
+                       choices = unique(battles$war_extended),
+                       options = list(`actions-box` = TRUE, `liveSearch` =TRUE),
+                       selected = NULL,
+                       multiple = TRUE)
+    ),
+    
+    column(6,
+           
+           #sliderInput(inputId = "range",
+           #label = "Select Year Range",
+           #min = min(lubridate::year(battles$start),na.rm=TRUE),
+           #max = lubridate::year(Sys.Date()),
+           #sep = "",
+           #dragRange = TRUE,
+           #value = c(as.character(min(lubridate::year(battles$start),na.rm=TRUE)),as.character(lubridate::year(Sys.Date()))),
+           #step = 1)
+           
+           uiOutput("Slider")
+           
+    )
+    
+  )
+  
+)
+
+
+server <- function(input, output, session) {
+  
+  filteredData <- reactive({battles[is.element(battles$war_extended, input$war) & lubridate::year(battles$start)>= input$range[1] & lubridate::year(battles$start) <= input$range[2],]})
+  
+  #battles[is.element(battles$partLabel, input$war) & lubridate::year(battles$start)>= input$range[1] & lubridate::year(battles$start) <= input$range[2],]
+  
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%
+      addMarkers(lng=filteredData()$lon, 
+                 lat=filteredData()$lat, 
+                 popup=paste0("<b>",toupper(filteredData()$battleLabel),"</b>",
+                              "</br>",
+                              ifelse(filteredData()$start==filteredData()$end, format(filteredData()$start, format="%d.%m.%Y"),paste0(format(filteredData()$start, format="%d.%m.%Y")," to ",format(filteredData()$end, format="%d.%m.%Y"))),
+                              "</br>",
+                              ifelse(filteredData()$placeLabel!="",filteredData()$placeLabel,""),ifelse(filteredData()$placeLabel!="" & filteredData()$countryLabel!="",", ",""),ifelse(filteredData()$countryLabel!="",filteredData()$countryLabel,""),
+                              "</br>",
+                              "<img src = ", 
+                              filteredData()$image, 
+                              " width = 200>"),
+                 icon = sabresIcon)
+  })
+  
+  
+  #output$Slider <- renderUI({
+  #updateSliderInput(session, "range", value = c(lubridate::year(min(filteredData()$start,na.rm=TRUE)), lubridate::year(max(filteredData()$end, na.rm = TRUE))))
+  #})
+  
+  output$Slider <- renderUI({
+    sliderInput(inputId = "range",
+                label = "Select Year Range",
+                min = min(lubridate::year(battles$start),na.rm=TRUE),
+                max = lubridate::year(Sys.Date()),
+                sep = "",
+                dragRange = TRUE,
+                value = c(lubridate::year(min(filteredData()$start,na.rm=TRUE)), lubridate::year(max(filteredData()$end, na.rm = TRUE))),
+                step = 1)
+  })
+  
+  
+  #output$minyear <- lubridate::year(min(fiteredData()$start))
+  
+}
+
+shinyApp(ui, server)
