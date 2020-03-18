@@ -12,16 +12,16 @@
     "path" : null,
     "project_path" : null,
     "properties" : {
-        "cacheKey" : "B319FE75",
+        "cacheKey" : "B728EA77",
         "caption" : "ISO3",
-        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=ISO3&cache_key=B319FE75",
-        "displayedObservations" : "250",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=ISO3&cache_key=B728EA77",
+        "displayedObservations" : "249",
         "environment" : "",
         "expression" : "ISO3",
         "object" : "ISO3",
         "preview" : "0",
-        "totalObservations" : "250",
-        "variables" : "2"
+        "totalObservations" : "249",
+        "variables" : "3"
     },
     "read_only" : false,
     "read_only_alternatives" : [

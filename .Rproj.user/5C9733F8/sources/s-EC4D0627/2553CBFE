@@ -12,16 +12,16 @@
     "path" : null,
     "project_path" : null,
     "properties" : {
-        "cacheKey" : "1AFF8495",
+        "cacheKey" : "A2629CD8",
         "caption" : "focus",
-        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=focus&cache_key=1AFF8495",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=focus&cache_key=A2629CD8",
         "displayedObservations" : "55",
         "environment" : "",
         "expression" : "focus",
         "object" : "focus",
         "preview" : "0",
         "totalObservations" : "55",
-        "variables" : "18"
+        "variables" : "32"
     },
     "read_only" : false,
     "read_only_alternatives" : [

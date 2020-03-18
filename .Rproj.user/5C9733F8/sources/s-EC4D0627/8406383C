@@ -1,0 +1,33 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1584484959041.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "8406383C",
+    "lastKnownWriteTime" : 8026363914660965410,
+    "last_content_update" : 1584484959041,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "781ECDAC",
+        "caption" : "coloring",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=coloring&cache_key=781ECDAC",
+        "displayedObservations" : 13970,
+        "environment" : "",
+        "expression" : "coloring",
+        "object" : "coloring",
+        "preview" : 0,
+        "totalObservations" : 13970,
+        "variables" : 32
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 14,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

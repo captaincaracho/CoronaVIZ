@@ -41,7 +41,7 @@ body <- dashboardBody(
                           
             ),  
                                       
-            absolutePanel(top = '80%', right = '70%', height = 100, width =  200, fixed = FALSE,                        
+            absolutePanel(top = '80%', right = '65%', height = 100, width =  250, fixed = FALSE,                        
                             selectInput(inputId = "Info", 
                                         label = "Pick a variable to display",
                                         choices = list("Absolute numbers" = list(
@@ -57,9 +57,9 @@ body <- dashboardBody(
                                                     "Recovered Cases per Million" = "Recovered Cases per Million"
                                                     ),
                                              "Ratios" = list(
-                                                    "Death ratio" = "Death ratio",
-                                                    "Active ratio" = "Active ratio", 
-                                                    "Death ratio of Outcomes" = "Death ratio of Outcomes"
+                                                    "Death Ratio of all Cases" = "Death ratio",
+                                                    "Active Ratio of all Cases" = "Active ratio", 
+                                                    "Death Ratio of all Known Outcomes" = "Death ratio of Outcomes"
                                                     ),
                                              "Growth Rates" = list(
                                                     "Daily Growth Rate of Cases"  = "Daily Growth Rate of Cases" ,
@@ -206,22 +206,54 @@ server <- function(input, output, session) {
                       dashArray = "3",
                       fillOpacity = .8,
                       bringToFront = TRUE),
-                    label = paste0(as.character(map$Country),", ", map_title, ": ", ifelse(is.na(map$Info),"No data or not not enough cases for computing a quota", paste(map$Info, measure))),
-                    labelOptions = labelOptions(noHide = F, textOnly = FALSE,
-                                  style=list(
-                                    'color'='blue',
-                                    'font-family'= 'sans-serif',
-                                    'font-style'= 'bold',
-                                    'box-shadow' = '3px 3px rgba(0,0,0,0.25)',
-                                    'font-size' = '10px',
-                                    'border-color' = 'rgba(0,0,0,0.5)'
-                                  )))
+                      label = paste0(map$Country,": ", ifelse(is.na(map$Info),"No data or not not enough cases for computing a quota", paste(round(map$Info,2), measure))),
+                    popup = paste0("<head>
+                                     <style>
+                                     table, th, td {
+                                       border: 1 px grey;
+                                       border-collapse: collapse;
+                                     }
+                                   th, td {
+                                     padding: 5px;
+                                     text-align: left;
+                                   }
+                                   </style>
+                                     </head>",
+                      
+                                   "<h3> <img src='https://raw.githubusercontent.com/captaincaracho/world_countries/master/flags/32x32/",tolower(map$ISO2),".png', width = 35 >     <b>",map$Country,"</b> </h3>",
+                                   
+                                   "<table>
+                                     <tr>
+                                     <th>",map$Day,"</th>
+                                     <th> Absolute </th>
+                                     <th> Daily Growth </th>
+                                     <th> per Million </th>
+                                     </tr> <tr>
+                                     <td>Cases</td>
+                                     <td>",ifelse(is.na(map$Cases),"-", map$Cases),"</td>
+                                     <td>",ifelse(is.na(map$CdG),"-", round(map$CdG,2)),"% </td>
+                                     <td>",ifelse(is.na(map$CpC),"-", round(map$CpC,2)),"</td>
+                                     </tr> <tr>
+                                     <td>Deaths </td>
+                                     <td>", ifelse(is.na(map$Deaths),"-", map$Deaths),"</td>
+                                     <td>", ifelse(is.na(map$DdG),"-", round(map$DdG,2)),"% </td>
+                                      <td>",ifelse(is.na(map$DpC),"-", round(map$DpC,2)),"</td>
+                                     </tr> <tr>
+                                     <td>Active Cases</td>
+                                     <td>",ifelse(is.na(map$Active),"-", map$Active),"</td>
+                                     <td>",ifelse(is.na(map$AdG),"-", round(map$AdG,2)),"% </td>
+                                     <td>",ifelse(is.na(map$ApC),"-", round(map$ApC,2)),"</td>
+                                     </tr>
+                                    </table>"
+                                   ),
+                    
+                    popupOptions = popupOptions(closeOnClick = TRUE, closeButton = FALSE, autoPan = TRUE)
+                                  
+                                  )
       
     
     })
 
-  
-  #output$minyear <- lubridate::year(min(fiteredData()$start))
   
 }
 

@@ -6,6 +6,7 @@ library(ISOcodes)
 library(countrycode)
 library(tidyr)
 library(leaflet)
+library(BBmisc)
 
 #download live data
 download.file(url="https://github.com/CSSEGISandData/COVID-19/archive/master.zip", destfile = "COVID-19-master.zip")
@@ -91,11 +92,10 @@ all[all$Country=="Curacao","Country"] <- "Curaçao"
 all[all$Country=="Congo (Brazzaville)","Country"] <- "Congo"
 
 
-
 #Join ISO-Codes
-ISO3        <- ISOcodes::ISO_3166_1[,c("Alpha_3","Name")]
-names(ISO3) <- c("ISO3","Country")
-ISO3        <- rbind(ISO3, c("KOS","Kosovo"))
+ISO3        <- ISOcodes::ISO_3166_1[,c("Alpha_3", "Alpha_2","Name")]
+names(ISO3) <- c("ISO3","ISO2","Country")
+ISO3        <- rbind(ISO3, c("KOS","XK","Kosovo")) #XK is name in flag repo, KOS result of rworldmap::rwmGetISO3("Kosovo")
 
 #compute basic per country counts
 countries        <- setNames(aggregate.data.frame(list(all$Confirmed, all$Deaths, all$Recovered), by=list(all$'Country', all$day), FUN = sum),c("Country","Day","Cases","Deaths","Recovered"))
@@ -103,12 +103,11 @@ countries        <- setNames(aggregate.data.frame(list(all$Confirmed, all$Deaths
 #add iso codes for mapping
 countries        <- merge(countries, ISO3, by= "Country", all=TRUE)
 
-
 #clear country names
-countries$Country  <- ifelse(!is.na(countrycode(countries$ISO3, "iso3c", "country.name")),countrycode(countries$ISO3, "iso3c", "country.name"),countries$Country)
+countries$Country  <- ifelse(!is.na(countrycode::countrycode(countries$ISO3, "iso3c", "country.name")),countrycode::countrycode(countries$ISO3, "iso3c", "country.name"),countries$Country)
 
 #fill up countries with no cases
-countries <- tidyr::complete(countries, nesting(Country, ISO3), Day )
+countries <- tidyr::complete(countries, nesting(Country, ISO3, ISO2), Day )
 countries <- countries[!is.na(countries$Day),]
 
 #add population
@@ -122,15 +121,15 @@ countries[is.na(countries$Recovered) & !is.na(countries$Cases),"Recovered"] <- 0
 countries$Active <- countries$Cases - countries$Deaths - countries$Recovered
 
 #compute ratios
-countries$D2C    <- ifelse(countries$Cases>=100,round(countries$Deaths/countries$Cases * 100,2),NA)
-countries$A2C    <- ifelse(countries$Cases>=100,round(countries$Active/countries$Cases * 100,2),NA)
-countries$D2O    <- ifelse(countries$Cases>=100,round(countries$Deaths/(countries$Recovered + countries$Deaths) * 100,2),NA)
+countries$D2C    <- ifelse(countries$Cases>=100,countries$Deaths/countries$Cases * 100,NA)
+countries$A2C    <- ifelse(countries$Cases>=100,countries$Active/countries$Cases * 100,NA)
+countries$D2O    <- ifelse(countries$Cases>=100,countries$Deaths/(countries$Recovered + countries$Deaths) * 100,NA)
 
 #compute per capita ratios
-countries$CpC    <- ifelse(countries$Cases>=100,round(countries$Cases/(countries$pop_2018/1000000),0),NA)
-countries$DpC    <- ifelse(countries$Cases>=100,round(countries$Deaths/(countries$pop_2018/1000000),0),NA)
-countries$ApC    <- ifelse(countries$Cases>=100,round(countries$Active/(countries$pop_2018/1000000),0),NA)
-countries$RpC    <- ifelse(countries$Cases>=100,round(countries$Recovered/(countries$pop_2018/1000000),0),NA)
+countries$CpC    <- ifelse(countries$Cases>=100,countries$Cases/(countries$pop_2018/1000000),NA)
+countries$DpC    <- ifelse(countries$Cases>=100,countries$Deaths/(countries$pop_2018/1000000),NA)
+countries$ApC    <- ifelse(countries$Cases>=100,countries$Active/(countries$pop_2018/1000000),NA)
+countries$RpC    <- ifelse(countries$Cases>=100,countries$Recovered/(countries$pop_2018/1000000),NA)
 
 #compute growth rates
 countries <- countries[order(countries$Day),]
@@ -148,9 +147,9 @@ for(country in 1:length(countrylist)){
   focus <- countries[which(countries$Country==countrylist[country]),]
 
   #calculate growth rates
-  focus[,"CdG"] <- round(as.vector(c(NA,diff(focus[,"Cases"]))/dplyr::lag(focus[,"Cases"])),4)*100
-  focus[,"DdG"] <- round(as.vector(c(NA,diff(focus[,"Deaths"]))/dplyr::lag(focus[,"Deaths"])),4)*100
-  focus[,"AdG"] <- round(as.vector(c(NA,diff(focus[,"Active"]))/dplyr::lag(focus[,"Active"])),4)*100
+  focus[,"CdG"] <- ifelse(focus$Cases>=100, as.vector(c(NA,diff(focus[,"Cases"]))/dplyr::lag(focus[,"Cases"]))*100,NA)
+  focus[,"DdG"] <- ifelse(focus$Cases>=100, as.vector(c(NA,diff(focus[,"Deaths"]))/dplyr::lag(focus[,"Deaths"]))*100,NA)
+  focus[,"AdG"] <- ifelse(focus$Cases>=100, as.vector(c(NA,diff(focus[,"Active"]))/dplyr::lag(focus[,"Active"]))*100,NA)
   
   #create empty dataset
   if(country==1){
@@ -172,9 +171,17 @@ display_vars <- c("Cases", "Active", "Deaths", "Recovered", "D2C", "A2C", "D2O",
 
 for(i in 1:length(display_vars)){
 
-  #use log to evenly distribute colors
-  pal                  <- leaflet::colorBin(palette = "RdYlGn",bins = 10, domain = log(countries[,display_vars[i]]), reverse = TRUE)
-  countries[,paste0(display_vars[i],"_color")] <- pal(log(countries[,display_vars[i]]))
+  #use log to evenly distribute colors, plus minimum to ensure all cases are positive, plus one too be sure they are not equal to 0
+  
+  coloring <- countries
+  
+  coloring[is.infinite(coloring[,display_vars[i]]),display_vars[i]] <-  max(coloring[!is.infinite(coloring[,display_vars[i]]),display_vars[i]],na.rm = TRUE)
+  
+  colordomain          <- log(BBmisc::normalize(coloring[,display_vars[i]], method = "range",margin =2,  range = c(1,100)))
+  
+  pal                  <- leaflet::colorBin(palette = "RdYlGn", bins = 10, domain = colordomain, reverse = TRUE)
+  
+  countries[,paste0(display_vars[i],"_color")] <- pal(colordomain)
 
 }
 
