@@ -8,18 +8,14 @@ library(shinydashboard)
 library(maptools)
 library(rworldmap)
 library(scales)
-
-
-devtools::install_github("tutuchan/shinyflags")
-library(shinyflags)
-
+library(ggplot2)
 
 header <- dashboardHeader(title = span(tagList(icon("calendar"), "CoronaVIZ")))
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
-    menuItem("World Map", tabName = "map")
-    #menuItem("Historical Score Data by Year", tabName = "score"),
+    menuItem("World Map", tabName = "map"),
+    menuItem("Timeline plots", tabName = "plot")
     #menuItem("Country Rankings", tabName = "rankings"),
     #menuItem("Data Table", tabName = "table")
   )
@@ -72,10 +68,78 @@ body <- dashboardBody(
                                         width = '100%',
                                         size = 1) 
                                       
-                                      
-                                      
            )
-    )
+          ),
+    
+    tabItem(tabName = "plot",
+            
+           
+            plotOutput("timeline", height = "700px"),
+              
+            absolutePanel(top = '80%', right = '80%', height = 100, width =  100, fixed = FALSE,
+              
+              selectInput(
+                inputId = "Country_plot",
+                label   = "Pick Countries", 
+                choices = as.character(unique(countries$Country)),
+                multiple = TRUE,
+                selected = c("Italy", "Spain", "France")
+              )),
+              
+            absolutePanel(top = '80%', right = '65%', height = 100, width =  250, fixed = FALSE,  
+              
+              selectInput(
+                inputId = "Variable_plot",
+                label   = "Pick Variable", 
+                choices = list("Absolute numbers" = list(
+                  "Cases" = "Cases",
+                  "Active" = "Active", 
+                  "Deaths" = "Deaths",
+                  "Recovered" = "Recovered"
+                ),
+                "Relative numbers" = list(
+                  "Cases per Million" = "Cases per Million",
+                  "Active Cases per Million" = "Active Cases per Million",
+                  "Deaths per Million" = "Deaths per Million",
+                  "Recovered Cases per Million" = "Recovered Cases per Million"
+                ),
+                "Ratios" = list(
+                  "Death Ratio of all Cases" = "Death ratio",
+                  "Active Ratio of all Cases" = "Active ratio", 
+                  "Death Ratio of all Known Outcomes" = "Death ratio of Outcomes"
+                ),
+                "Growth Rates" = list(
+                  "Daily Growth Rate of Cases"  = "Daily Growth Rate of Cases" ,
+                  "Daily Growth Rate of Active Cases" = "Daily Growth Rate of Active Cases",
+                  "Daily Growth Rate of Deaths"  = "Daily Growth Rate of Deaths"
+                )),
+                multiple = FALSE,
+                selected = "Cases"
+              )),
+            
+            absolutePanel(top = '80%', right = '55%', height = 100, width =  150, fixed = FALSE,
+                          
+                          dateInput(inputId = "Start_Day",
+                                    label = "Pick a start date",
+                                    format = "yyyy-mm-dd",
+                                    weekstart = 1,
+                                    value = min(countries$Day))
+                          
+            ),  
+            
+            absolutePanel(top = '80%', right = '45%', height = 100, width =  150, fixed = FALSE,
+                          
+                          dateInput(inputId = "End_Day",
+                                    label = "Pick an end date",
+                                    format = "yyyy-mm-dd",
+                                    weekstart = 1,
+                                    value = max(countries$Day))
+                          
+            ),  
+            
+            )
+    
+    
   )
 )
 
@@ -86,6 +150,8 @@ ui <- dashboardPage(header, sidebar, body, skin = "black")
 
 server <- function(input, output, session) {
 
+  
+  #Worldmap
   output$map <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 2)) %>%
       addTiles() %>%
@@ -100,6 +166,7 @@ server <- function(input, output, session) {
   })
   
   
+
   observe({
       map <- joinCountryData2Map(selected(), joinCode = "ISO3",nameJoinColumn = "ISO3")
       
@@ -126,7 +193,7 @@ server <- function(input, output, session) {
                    
                      )
       
-      #Number that shows up
+      #Number that shows up in label
       map$Info <- switch(input$Info, 
                          "Cases" = map$Cases,
                          "Active" = map$Active,
@@ -250,6 +317,52 @@ server <- function(input, output, session) {
                     popupOptions = popupOptions(closeOnClick = TRUE, closeButton = FALSE, autoPan = TRUE)
                                   
                                   )
+      
+      
+      #Timeline
+      selected_plot <- reactive({
+        countries <- countries[which(countries$Country == input$Country_plot & countries$Day >= input$Start_Day & countries$Day <=input$End_Day) , ]
+      })
+      
+      
+      
+      plotvar   <- switch(input$Variable_plot, 
+                         "Cases" = "Cases",
+                         "Active" = "Active",
+                         "Deaths" = "Deaths",
+                         "Recovered" = "Recovered",
+                         
+                         "Cases per Million" = "CpC",
+                         "Active Cases per Million" = "ApC",
+                         "Deaths per Million" = "DpC",
+                         "Recovered Cases per Million" = "RpC",
+                         
+                         "Death ratio" = "D2C",
+                         "Active ratio" = "A2C",
+                         "Death ratio of Outcomes" = "D2O",
+                         
+                         "Daily Growth Rate of Cases"  = "CdG",
+                         "Daily Growth Rate of Active Cases" = "AdG",
+                         "Daily Growth Rate of Deaths"  = "DdG"
+      )
+      
+      
+      
+      output$timeline <- renderPlot({
+       
+        ggplot(data = selected_plot(), aes(x=Day, y=!!as.name(plotvar), color=Country))+
+           geom_line(size=1)+
+           labs(x = "Date", 
+                y = input$Variable_plot)+
+          #geom_line(color=countries[countries$Country=="Italy","Cases_color"])
+          theme_minimal()
+        
+        
+      })
+      
+      
+      output$text <- renderText(paste(input$Variable_plot))
+      
       
     
     })
