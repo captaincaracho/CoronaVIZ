@@ -1,0 +1,13 @@
+name: CoronaVIZ
+title: CoronaVIZ
+username:
+account: twolfanger
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1978942
+bundleId: 2920601
+url: https://twolfanger.shinyapps.io/CoronaVIZ/
+when: 1585095215.6987
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .gitattributes|.RData|CoronaVIZ-App.R|Display Worldmap.R|COVID-19-master/.gitignore|COVID-19-master/archived_data/archived_daily_case_updates/.gitignore|COVID-19-master/archived_data/archived_time_series/.gitignore|COVID-19-master/csse_covid_19_data/csse_covid_19_daily_reports/.gitignore|COVID-19-master/csse_covid_19_data/csse_covid_19_time_series/.gitignore

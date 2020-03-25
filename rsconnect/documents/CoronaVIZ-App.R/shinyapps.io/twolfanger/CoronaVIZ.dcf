@@ -1,0 +1,12 @@
+name: CoronaVIZ
+title: CoronaVIZ
+username:
+account: twolfanger
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1978942
+bundleId: 2910518
+url: https://twolfanger.shinyapps.io/CoronaVIZ/
+when: 1584920488.55423
+asMultiple: FALSE
+asStatic: FALSE

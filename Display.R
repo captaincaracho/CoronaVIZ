@@ -1,5 +1,12 @@
 
 ###############################################################################################
+library(data.table)
+library(plyr)
+library(dplyr)
+library(ISOcodes)
+library(countrycode)
+library(tidyr)
+library(BBmisc)
 library(shiny)
 library(lubridate)
 library(shinyWidgets)
@@ -9,15 +16,19 @@ library(maptools)
 library(rworldmap)
 library(scales)
 library(ggplot2)
+library(rsconnect)
 
-header <- dashboardHeader(title = span(tagList(icon("calendar"), "CoronaVIZ")))
+source("Prepare.R", local = TRUE)
+
+
+###Shiny App
+
+header <- dashboardHeader(title = "CoronaVIZ")
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
     menuItem("World Map", tabName = "map"),
     menuItem("Timeline plots", tabName = "plot")
-    #menuItem("Country Rankings", tabName = "rankings"),
-    #menuItem("Data Table", tabName = "table")
   )
 )
 
@@ -26,6 +37,14 @@ body <- dashboardBody(
   tabItems(
     tabItem(tabName = "map",
             leafletOutput("map", width = "100%", height = 1000),
+
+                          
+            absolutePanel(top = '80%', right = '10%', height = 100, width =  100, fixed = FALSE,
+                          
+                          #textOutput("timestamp")
+                          
+            ),          
+   
             
             absolutePanel(top = '80%', right = '80%', height = 100, width =  100, fixed = FALSE,
                             
@@ -33,7 +52,8 @@ body <- dashboardBody(
                                       label = "Pick a date",
                                       format = "yyyy-mm-dd",
                                       weekstart = 1,
-                                      value = max(countries$Day))
+                                      value = max(countries$Day)),
+                          
                           
             ),  
                                       
@@ -62,13 +82,16 @@ body <- dashboardBody(
                                                     "Daily Growth Rate of Active Cases" = "Daily Growth Rate of Active Cases",
                                                     "Daily Growth Rate of Deaths"  = "Daily Growth Rate of Deaths"
                                              )),
-                                        selected = "Active ratio",
+                                        selected = "Cases per Million",
                                         multiple = FALSE, 
                                         selectize = FALSE,
                                         width = '100%',
                                         size = 1) 
                                       
            )
+           
+           
+           
           ),
     
     tabItem(tabName = "plot",
@@ -76,6 +99,15 @@ body <- dashboardBody(
            
             plotOutput("timeline", height = "700px"),
               
+            
+            absolutePanel(top = '80%', right = '10%', height = 100, width =  100, fixed = FALSE,
+                          
+                          textOutput("timestamp")
+                          
+                          ),
+            
+            
+            
             absolutePanel(top = '80%', right = '80%', height = 100, width =  100, fixed = FALSE,
               
               selectInput(
@@ -297,19 +329,19 @@ server <- function(input, output, session) {
                                      <th> per Million </th>
                                      </tr> <tr>
                                      <td>Cases</td>
-                                     <td>",ifelse(is.na(map$Cases),"-", map$Cases),"</td>
-                                     <td>",ifelse(is.na(map$CdG),"-", round(map$CdG,2)),"% </td>
-                                     <td>",ifelse(is.na(map$CpC),"-", round(map$CpC,2)),"</td>
+                                     <td>",ifelse(is.na(map$Cases),"-", format(map$Cases, big.mark =",", nsmall = 0)),"</td>
+                                     <td>",ifelse(is.na(map$CdG),"-", format(round(map$CdG,2), big.mark =",")),"% </td>
+                                     <td>",ifelse(is.na(map$CpC),"-", format(round(map$CpC,2), big.mark =",")),"</td>
                                      </tr> <tr>
                                      <td>Deaths </td>
-                                     <td>", ifelse(is.na(map$Deaths),"-", map$Deaths),"</td>
-                                     <td>", ifelse(is.na(map$DdG),"-", round(map$DdG,2)),"% </td>
-                                      <td>",ifelse(is.na(map$DpC),"-", round(map$DpC,2)),"</td>
+                                     <td>", ifelse(is.na(map$Deaths),"-", format(map$Deaths, big.mark =",", nsmall = 0)),"</td>
+                                     <td>", ifelse(is.na(map$DdG),"-", format(round(map$DdG,2), big.mark =",")),"% </td>
+                                      <td>",ifelse(is.na(map$DpC),"-", format(round(map$DpC,2), big.mark =",")),"</td>
                                      </tr> <tr>
                                      <td>Active Cases</td>
-                                     <td>",ifelse(is.na(map$Active),"-", map$Active),"</td>
-                                     <td>",ifelse(is.na(map$AdG),"-", round(map$AdG,2)),"% </td>
-                                     <td>",ifelse(is.na(map$ApC),"-", round(map$ApC,2)),"</td>
+                                     <td>",ifelse(is.na(map$Active),"-", format(map$Active, big.mark =",", nsmall = 0)),"</td>
+                                     <td>",ifelse(is.na(map$AdG),"-", format(round(map$CdG,2), big.mark =",")),"% </td>
+                                     <td>",ifelse(is.na(map$ApC),"-", format(round(map$ApC,2), big.mark =",")),"</td>
                                      </tr>
                                     </table>"
                                    ),
@@ -361,7 +393,7 @@ server <- function(input, output, session) {
       })
       
       
-      output$text <- renderText(paste(input$Variable_plot))
+      output$timestamp <- renderText(paste0("last updated: ", time))
       
       
     

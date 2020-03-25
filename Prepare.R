@@ -1,12 +1,6 @@
 
-library(data.table)
-library(plyr)
-library(dplyr)
-library(ISOcodes)
-library(countrycode)
-library(tidyr)
-library(leaflet)
-library(BBmisc)
+### Data preparation
+
 
 #download live data
 download.file(url="https://github.com/CSSEGISandData/COVID-19/archive/master.zip", destfile = "COVID-19-master.zip")
@@ -14,20 +8,27 @@ download.file(url="https://github.com/CSSEGISandData/COVID-19/archive/master.zip
 #unzip downloaded data
 unzip("COVID-19-master.zip")
 
-#read poluation data
-pop <- read.csv("API_SP.POP.TOTL_DS2_en_csv_v2_821007.csv", skip = 4)
-pop <- setNames(pop[,c("Country.Code","X2018")],c("ISO3","pop_2018"))
+#save timestamp
+time                     <- Sys.time()
+attr(timestamp, "tzone") <- "UTC"
 
+#read population data
+pop          <- read.csv("API_SP.POP.TOTL_DS2_en_csv_v2_821007.csv", skip = 4, stringsAsFactors = FALSE)
+pop          <- setNames(pop[,c("Country.Code","X2018")],c("ISO3","pop_2018"))
+pop          <- rbind(pop, c("TWN",23588932)) 
+pop$pop_2018 <- as.numeric(pop$pop_2018)
 
-#list files with datat
+#list files with data
 files <- list.files("COVID-19-master/csse_covid_19_data/csse_covid_19_daily_reports", full.names = TRUE)[!grepl("README",list.files("COVID-19-master/csse_covid_19_data/csse_covid_19_daily_reports", full.names = TRUE))]
+
 
 
 #read data
 for (day in 1:length(files)) {
   
-  daily     <- as.data.frame(data.table::fread(files[day]))
-  daily$day <- gsub("COVID-19-master/csse_covid_19_data/csse_covid_19_daily_reports/|.csv","",files[day])
+  daily       <- as.data.frame(data.table::fread(files[day]))
+  names(daily)<- gsub("/|_| |itude","",names(daily))
+  daily$day   <- gsub("COVID-19-master/csse_covid_19_data/csse_covid_19_daily_reports/|.csv","",files[day])
   
   if(day > 1) {
     
@@ -39,6 +40,10 @@ for (day in 1:length(files)) {
     
   }
 }
+
+file.remove("COVID-19-master.zip")
+to_remove <- list.files("COVID-19-master", include.dirs = F, full.names = T, recursive = T)
+file.remove(to_remove)
 
 
 #Names
@@ -90,7 +95,15 @@ all[all$Country=="Cruise Ship","Country"] <- "Others"
 all[all$Country=="Venezuela","Country"] <- "Venezuela, Bolivarian Republic of"
 all[all$Country=="Curacao","Country"] <- "Curaçao"
 all[all$Country=="Congo (Brazzaville)","Country"] <- "Congo"
-
+all[all$Country=="Republic of the Congo","Country"] <- "Congo"
+all[all$Country=="Bahamas, The","Country"] <- "Bahamas"
+all[all$Country=="The Bahamas","Country"] <- "Bahamas"
+all[all$Country=="Gambia, The","Country"] <- "Gambia"
+all[all$Country=="The Gambia","Country"] <- "Gambia"
+all[all$Country=="Tanzania","Country"] <- "Tanzania, United Republic of"
+all[all$Country=="Syria","Country"] <- "Syrian Arab Republic"
+all[all$Country=="Cape Verde","Country"] <- "Cabo Verde"
+all[all$Country=="East Timor","Country"] <- "Timor-Leste"
 
 #Join ISO-Codes
 ISO3        <- ISOcodes::ISO_3166_1[,c("Alpha_3", "Alpha_2","Name")]
@@ -145,7 +158,7 @@ for(country in 1:length(countrylist)){
   
   #select country to calculate growth rates for
   focus <- countries[which(countries$Country==countrylist[country]),]
-
+  
   #calculate growth rates
   focus[,"CdG"] <- ifelse(focus$Cases>=100, as.vector(c(NA,diff(focus[,"Cases"]))/dplyr::lag(focus[,"Cases"]))*100,NA)
   focus[,"DdG"] <- ifelse(focus$Cases>=100, as.vector(c(NA,diff(focus[,"Deaths"]))/dplyr::lag(focus[,"Deaths"]))*100,NA)
@@ -160,8 +173,8 @@ for(country in 1:length(countrylist)){
   all_countries <- rbind(all_countries, focus)
   
 }
-                                                                               
-                                                                               
+
+
 #return to dataframe
 countries <- as.data.frame(all_countries)
 
@@ -170,7 +183,7 @@ countries <- as.data.frame(all_countries)
 display_vars <- c("Cases", "Active", "Deaths", "Recovered", "D2C", "A2C", "D2O", "CpC","DpC","ApC","RpC","CdG","DdG","AdG")
 
 for(i in 1:length(display_vars)){
-
+  
   #use log to evenly distribute colors, plus minimum to ensure all cases are positive, plus one too be sure they are not equal to 0
   
   coloring <- countries
@@ -182,7 +195,5 @@ for(i in 1:length(display_vars)){
   pal                  <- leaflet::colorBin(palette = "RdYlGn", bins = 10, domain = colordomain, reverse = TRUE)
   
   countries[,paste0(display_vars[i],"_color")] <- pal(colordomain)
-
+  
 }
-
-
