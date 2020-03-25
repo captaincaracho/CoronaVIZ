@@ -27,8 +27,8 @@ header <- dashboardHeader(title = "CoronaVIZ")
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
-    menuItem("World Map", tabName = "map"),
-    menuItem("Timeline plots", tabName = "plot")
+    menuItem("World Map", tabName = "map", icon = icon("globe")),
+    menuItem("Timeline plots", tabName = "plot", icon = icon("chart-line"))
   )
 )
 
@@ -36,7 +36,7 @@ sidebar <- dashboardSidebar(
 body <- dashboardBody(
   tabItems(
     tabItem(tabName = "map",
-            leafletOutput("map", width = "100%", height = 1000),
+            leafletOutput("map", width = "100%", height = 800),
 
                           
             absolutePanel(top = '80%', right = '10%', height = 100, width =  100, fixed = FALSE,
@@ -115,7 +115,8 @@ body <- dashboardBody(
                 label   = "Pick Countries", 
                 choices = as.character(unique(countries$Country)),
                 multiple = TRUE,
-                selected = c("Italy", "Spain", "France")
+                #selelt top three countries in cases for default plot
+                selected = countries[is.element(countries$Cases,sort(countries[which(countries$Day==max(countries$Day,na.rm = TRUE)),"Cases"], decreasing = TRUE)[1:3]),"Country"]
               )),
               
             absolutePanel(top = '80%', right = '65%', height = 100, width =  250, fixed = FALSE,  
@@ -383,11 +384,16 @@ server <- function(input, output, session) {
       output$timeline <- renderPlot({
        
         ggplot(data = selected_plot(), aes(x=Day, y=!!as.name(plotvar), color=Country))+
-           geom_line(size=1)+
-           labs(x = "Date", 
-                y = input$Variable_plot)+
-          #geom_line(color=countries[countries$Country=="Italy","Cases_color"])
-          theme_minimal()
+           geom_line(size=1.5)+
+           labs(x = "Date",y = input$Variable_plot)+
+           scale_x_date(labels = date_format("%m-%d"), date_breaks = "1 week")+
+           theme(axis.text = element_text(size = 12),
+                 axis.title = element_text(size=14),
+                 legend.title = element_text(size=14),
+                 legend.text = element_text(size=12),
+                 panel.background = element_rect(fill="white"),
+                 panel.grid.major = element_line(colour = "grey"))
+           
         
         
       })

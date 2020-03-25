@@ -24,9 +24,14 @@ if(!dir.exists("Data")){
 #download data
 for (dayfile in 1:length(datadays)) {
   
+  #limit download to new data
+  if(!file.exists(paste0("Data/",datadays[dayfile],".csv"))){
+  
   #download file
   tryCatch(download.file(url=paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/",datadays[dayfile],".csv"), destfile = paste0("Data/",datadays[dayfile],".csv")),error = function(e){})
 
+  }
+    
 }
   
   
