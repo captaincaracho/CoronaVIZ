@@ -1,5 +1,9 @@
 *.csv
 *.zip
 *.pdf
-
+*.Rproj
+*.Rhistory
+*.RData
+rsconnect
+COVID-19-master
 .Rproj.user
