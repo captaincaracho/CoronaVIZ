@@ -1,12 +1,7 @@
 
-### Data preparation
+### Data preparation###
 
-
-#download live data
-download.file(url="https://github.com/CSSEGISandData/COVID-19/archive/master.zip", destfile = "COVID-19-master.zip")
-
-#unzip downloaded data
-unzip("COVID-19-master.zip")
+#This script needs to be sourced from the shiny script to load all relevant packages
 
 #save timestamp
 time                     <- Sys.time()
@@ -18,18 +13,39 @@ pop          <- setNames(pop[,c("Country.Code","X2018")],c("ISO3","pop_2018"))
 pop          <- rbind(pop, c("TWN",23588932)) 
 pop$pop_2018 <- as.numeric(pop$pop_2018)
 
-#list files with data
-files <- list.files("COVID-19-master/csse_covid_19_data/csse_covid_19_daily_reports", full.names = TRUE)[!grepl("README",list.files("COVID-19-master/csse_covid_19_data/csse_covid_19_daily_reports", full.names = TRUE))]
+#list all expected csv files in Johns Hopkins github repo
+datadays <- as.character(format(as.Date(as.Date("01-22-2020", format = "%m-%d-%Y"):Sys.Date(), format = "%m-%d-%Y", origin="01-01-1970"),"%m-%d-%Y"))
 
-
-
-#read data
-for (day in 1:length(files)) {
+#create data folder
+if(!dir.exists("Data")){
+  dir.create("Data")
+}
   
-  daily       <- as.data.frame(data.table::fread(files[day]))
+#download data
+for (dayfile in 1:length(datadays)) {
+  
+  #download file
+  tryCatch(download.file(url=paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/",datadays[dayfile],".csv"), destfile = paste0("Data/",datadays[dayfile],".csv")),error = function(e){})
+
+}
+  
+  
+#bind data
+datafiles <- list.files("Data")
+
+
+for (day in 1:length(datafiles)) {
+
+  #read downloaded file
+  daily       <- as.data.frame(data.table::fread(paste0("Data/",datadays[day],".csv")))
+  
+  #clean variable names
   names(daily)<- gsub("/|_| |itude","",names(daily))
-  daily$day   <- gsub("COVID-19-master/csse_covid_19_data/csse_covid_19_daily_reports/|.csv","",files[day])
   
+  #create day variable
+  daily$day   <- datadays[day]
+  
+  #bind all daily data
   if(day > 1) {
     
     all <- plyr::rbind.fill(all, daily)
@@ -41,19 +57,14 @@ for (day in 1:length(files)) {
   }
 }
 
-file.remove("COVID-19-master.zip")
-to_remove <- list.files("COVID-19-master", include.dirs = F, full.names = T, recursive = T)
-file.remove(to_remove)
 
-
-#Names
-
+#rename country variable
 names(all)[2] <- "Country"
 
-#Create Date
+#create Date variable
 all$day <- as.Date(all$day, format = "%m-%d-%Y")
 
-#Clean Country-Names
+#clean country names
 all[all$Country=="Russia","Country"] <- "Russian Federation"
 all[all$Country=="Mainland China","Country"] <- "China"
 all[all$Country=="Republic of Ireland ","Country"] <- "Ireland"
@@ -105,29 +116,29 @@ all[all$Country=="Syria","Country"] <- "Syrian Arab Republic"
 all[all$Country=="Cape Verde","Country"] <- "Cabo Verde"
 all[all$Country=="East Timor","Country"] <- "Timor-Leste"
 
-#Join ISO-Codes
+#get ISO-Codes from ISOCodes package
 ISO3        <- ISOcodes::ISO_3166_1[,c("Alpha_3", "Alpha_2","Name")]
 names(ISO3) <- c("ISO3","ISO2","Country")
 ISO3        <- rbind(ISO3, c("KOS","XK","Kosovo")) #XK is name in flag repo, KOS result of rworldmap::rwmGetISO3("Kosovo")
 
-#compute basic per country counts
-countries        <- setNames(aggregate.data.frame(list(all$Confirmed, all$Deaths, all$Recovered), by=list(all$'Country', all$day), FUN = sum),c("Country","Day","Cases","Deaths","Recovered"))
+#compute basic counts of cases, deaths and recovered per country
+countries   <- setNames(aggregate.data.frame(list(all$Confirmed, all$Deaths, all$Recovered), by=list(all$'Country', all$day), FUN = sum),c("Country","Day","Cases","Deaths","Recovered"))
 
-#add iso codes for mapping
-countries        <- merge(countries, ISO3, by= "Country", all=TRUE)
+#add ISO-codes for mapping and flags
+countries   <- merge(countries, ISO3, by= "Country", all=TRUE)
 
-#clear country names
+#clear country names to plain english names from countrycode package
 countries$Country  <- ifelse(!is.na(countrycode::countrycode(countries$ISO3, "iso3c", "country.name")),countrycode::countrycode(countries$ISO3, "iso3c", "country.name"),countries$Country)
 
-#fill up countries with no cases
+#fill up countries with no cases to complete dataset
 countries <- tidyr::complete(countries, nesting(Country, ISO3, ISO2), Day )
 countries <- countries[!is.na(countries$Day),]
 
-#add population
+#add population information from workdbank
 countries        <- merge(countries, pop, by= "ISO3", all.x=TRUE)
 
-#fill up NAs of Basic Variables
-countries[is.na(countries$Deaths)    & !is.na(countries$Cases),"Deaths"] <- 0
+#fill up NAs of Basic Variables if there are cases
+countries[is.na(countries$Deaths)    & !is.na(countries$Cases),"Deaths"]    <- 0
 countries[is.na(countries$Recovered) & !is.na(countries$Cases),"Recovered"] <- 0
 
 #compute active cases
@@ -147,13 +158,15 @@ countries$RpC    <- ifelse(countries$Cases>=100,countries$Recovered/(countries$p
 #compute growth rates
 countries <- countries[order(countries$Day),]
 
+#list countries
 countrylist <- unique(countries$Country)
 
+#intitiate variables
 countries$CdG <- NA
 countries$DdG <- NA
 countries$AdG <- NA
 
-
+#iterate over countries
 for(country in 1:length(countrylist)){
   
   #select country to calculate growth rates for
@@ -174,26 +187,29 @@ for(country in 1:length(countrylist)){
   
 }
 
-
 #return to dataframe
 countries <- as.data.frame(all_countries)
 
-#produce colored bins
-
+#list variables for which colorcodes should be computed
 display_vars <- c("Cases", "Active", "Deaths", "Recovered", "D2C", "A2C", "D2O", "CpC","DpC","ApC","RpC","CdG","DdG","AdG")
 
+#iterate over variables to colorcode
 for(i in 1:length(display_vars)){
   
-  #use log to evenly distribute colors, plus minimum to ensure all cases are positive, plus one too be sure they are not equal to 0
-  
+  #duplicate dataset
   coloring <- countries
   
-  coloring[is.infinite(coloring[,display_vars[i]]),display_vars[i]] <-  max(coloring[!is.infinite(coloring[,display_vars[i]]),display_vars[i]],na.rm = TRUE)
+  #replace infinite numbers with non infinite max or min for color coding
+  coloring[is.infinite(coloring[,display_vars[i]]) & coloring[,display_vars[i]] >0 ,display_vars[i]] <-  max(coloring[!is.infinite(coloring[,display_vars[i]]),display_vars[i]],na.rm = TRUE)
+  coloring[is.infinite(coloring[,display_vars[i]]) & coloring[,display_vars[i]] <0 ,display_vars[i]] <-  min(coloring[!is.infinite(coloring[,display_vars[i]]),display_vars[i]],na.rm = TRUE)
   
+  #create color scale basic variable by log on normalized data > 0
   colordomain          <- log(BBmisc::normalize(coloring[,display_vars[i]], method = "range",margin =2,  range = c(1,100)))
   
+  #create coloring scheme
   pal                  <- leaflet::colorBin(palette = "RdYlGn", bins = 10, domain = colordomain, reverse = TRUE)
   
+  #use color code on variable
   countries[,paste0(display_vars[i],"_color")] <- pal(colordomain)
   
 }
