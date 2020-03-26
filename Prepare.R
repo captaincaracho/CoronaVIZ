@@ -5,7 +5,7 @@
 
 #save timestamp
 time                     <- Sys.time()
-attr(timestamp, "tzone") <- "UTC"
+attr(time, "tzone") <- "UTC"
 
 #read population data
 pop          <- read.csv("API_SP.POP.TOTL_DS2_en_csv_v2_821007.csv", skip = 4, stringsAsFactors = FALSE)
@@ -120,6 +120,7 @@ all[all$Country=="Tanzania","Country"] <- "Tanzania, United Republic of"
 all[all$Country=="Syria","Country"] <- "Syrian Arab Republic"
 all[all$Country=="Cape Verde","Country"] <- "Cabo Verde"
 all[all$Country=="East Timor","Country"] <- "Timor-Leste"
+all[all$Country=="Laos","Country"] <- "Lao People's Democratic Republic"
 
 #get ISO-Codes from ISOCodes package
 ISO3        <- ISOcodes::ISO_3166_1[,c("Alpha_3", "Alpha_2","Name")]

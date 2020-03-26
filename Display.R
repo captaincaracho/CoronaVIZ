@@ -20,7 +20,6 @@ library(rsconnect)
 
 source("Prepare.R", local = TRUE)
 
-
 ###Shiny App
 
 header <- dashboardHeader(title = "CoronaVIZ")
@@ -28,7 +27,8 @@ header <- dashboardHeader(title = "CoronaVIZ")
 sidebar <- dashboardSidebar(
   sidebarMenu(
     menuItem("World Map", tabName = "map", icon = icon("globe")),
-    menuItem("Timeline plots", tabName = "plot", icon = icon("chart-line"))
+    menuItem("Timeline plots", tabName = "plot", icon = icon("chart-line")),
+    menuItem("Info", tabName = "info", icon = icon("info"))
   )
 )
 
@@ -99,15 +99,6 @@ body <- dashboardBody(
            
             plotOutput("timeline", height = "700px"),
               
-            
-            absolutePanel(top = '80%', right = '10%', height = 100, width =  100, fixed = FALSE,
-                          
-                          textOutput("timestamp")
-                          
-                          ),
-            
-            
-            
             absolutePanel(top = '80%', right = '80%', height = 100, width =  100, fixed = FALSE,
               
               selectInput(
@@ -170,10 +161,19 @@ body <- dashboardBody(
                           
             ),  
             
-            )
+            ),
     
-    
-  )
+    tabItem(tabName = "info",
+            
+            titlePanel("Info"),
+            mainPanel(
+              HTML(paste0("<b>Data source: </b> <a href='https://github.com/CSSEGISandData/COVID-19' > Coronavirus COVID-19 Global Cases by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) </a>  </br> </br>
+                    <b>Last updated: </b>",textOutput("timestamp"),"</br>
+                    <b>Country flags from: <b> <a href='https://github.com/stefangabos/world_countries' > https://github.com/stefangabos/world_countries </a> </br> </br>
+                    <b>Github repo for source code: <b> <a href='https://github.com/captaincaracho/CoronaVIZ'> https://github.com/captaincaracho/CoronaVIZ </a> ")
+            
+            ))
+  ))
 )
 
 
@@ -182,7 +182,6 @@ ui <- dashboardPage(header, sidebar, body, skin = "black")
 
 
 server <- function(input, output, session) {
-
   
   #Worldmap
   output$map <- renderLeaflet({
@@ -201,7 +200,8 @@ server <- function(input, output, session) {
   
 
   observe({
-      map <- joinCountryData2Map(selected(), joinCode = "ISO3",nameJoinColumn = "ISO3")
+      map <- joinCountryData2Map(selected(), joinCode = "ISO3",nameJoinColumn = "ISO3", verbose = TRUE)
+      
       
       #Colorcode
       map$Color <- switch(input$Info, 
@@ -399,7 +399,7 @@ server <- function(input, output, session) {
       })
       
       
-      output$timestamp <- renderText(paste0("last updated: ", time))
+      output$timestamp <- renderText(paste0(time," UTC"))
       
       
     
