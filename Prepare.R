@@ -102,6 +102,7 @@ all[all$Country=="Holy See","Country"] <- "Holy See (Vatican City State)"
 all[all$Country=="Republic of Ireland","Country"] <- "Ireland"
 all[all$Country=="Palestine","Country"] <- "Palestine, State of"
 all[all$Country=="occupied Palestinian territory","Country"] <- "Palestine, State of"
+all[all$Country=="West Bank and Gaza","Country"] <- "Palestine, State of"
 all[all$Country=="St. Martin","Country"] <- "Saint Martin (French part)"
 all[all$Country=="Saint Martin","Country"] <- "Saint Martin (French part)"
 all[all$Country=="Reunion","Country"] <- "Réunion"
@@ -121,6 +122,7 @@ all[all$Country=="Syria","Country"] <- "Syrian Arab Republic"
 all[all$Country=="Cape Verde","Country"] <- "Cabo Verde"
 all[all$Country=="East Timor","Country"] <- "Timor-Leste"
 all[all$Country=="Laos","Country"] <- "Lao People's Democratic Republic"
+all[all$Country=="Burma","Country"] <- "Myanmar"
 
 #get ISO-Codes from ISOCodes package
 ISO3        <- ISOcodes::ISO_3166_1[,c("Alpha_3", "Alpha_2","Name")]

@@ -38,26 +38,25 @@ body <- dashboardBody(
     tabItem(tabName = "map",
             leafletOutput("map", width = "100%", height = 800),
 
-                          
-            absolutePanel(top = '80%', right = '10%', height = 100, width =  100, fixed = FALSE,
-                          
-                          #textOutput("timestamp")
-                          
-            ),          
-   
+      
             
-            absolutePanel(top = '80%', right = '80%', height = 100, width =  100, fixed = FALSE,
+            absolutePanel(top = '90%', right = '70%', height = 100, width =  250, fixed = FALSE,
                             
-                            dateInput(inputId = "Day",
-                                      label = "Pick a date",
-                                      format = "yyyy-mm-dd",
-                                      weekstart = 1,
-                                      value = max(countries$Day)),
-                          
+                          setSliderColor("black", 1),
+                            
+                              sliderInput(inputId = "Day", "Pick a date:",
+                                      min = min(countries$Day), max = max(countries$Day),
+                                      value = max(countries$Day), step = 1,
+                                      animate =
+                                        animationOptions(interval = 3000, loop = FALSE))
+                        
                           
             ),  
+            
+                          
+                          
                                       
-            absolutePanel(top = '80%', right = '65%', height = 100, width =  250, fixed = FALSE,                        
+            absolutePanel(top = '90%', right = '55%', height = 100, width =  250, fixed = FALSE,                        
                             selectInput(inputId = "Info", 
                                         label = "Pick a variable to display",
                                         choices = list("Absolute numbers" = list(
@@ -169,8 +168,8 @@ body <- dashboardBody(
             mainPanel(
               HTML(paste0("<b>Data source: </b> <a href='https://github.com/CSSEGISandData/COVID-19' > Coronavirus COVID-19 Global Cases by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) </a>  </br> </br>
                     <b>Last updated: </b>",textOutput("timestamp"),"</br>
-                    <b>Country flags from: <b> <a href='https://github.com/stefangabos/world_countries' > https://github.com/stefangabos/world_countries </a> </br> </br>
-                    <b>Github repo for source code: <b> <a href='https://github.com/captaincaracho/CoronaVIZ'> https://github.com/captaincaracho/CoronaVIZ </a> ")
+                    <b>Country flags from: </b> <a href='https://github.com/stefangabos/world_countries' > https://github.com/stefangabos/world_countries </a> </br> </br>
+                    <b>Source code: </b> <a href='https://github.com/captaincaracho/CoronaVIZ'> https://github.com/captaincaracho/CoronaVIZ </a> ")
             
             ))
   ))
@@ -306,7 +305,7 @@ server <- function(input, output, session) {
                       dashArray = "3",
                       fillOpacity = .8,
                       bringToFront = TRUE),
-                      label = paste0(map$Country,": ", ifelse(is.na(map$Info),"No data or not not enough cases for computing a quota", paste(round(map$Info,2), measure))),
+                      label = paste0(map$Country,": ", ifelse(is.na(map$Info),"No data or not not enough cases for computing a quota", paste0(format(round(map$Info,2), big.mark =","), measure))),
                     popup = paste0("<head>
                                      <style>
                                      table, th, td {
@@ -315,7 +314,6 @@ server <- function(input, output, session) {
                                      }
                                    th, td {
                                      padding: 5px;
-                                     text-align: left;
                                    }
                                    </style>
                                      </head>",
@@ -323,22 +321,22 @@ server <- function(input, output, session) {
                                    "<h3> <img src='https://raw.githubusercontent.com/captaincaracho/world_countries/master/flags/32x32/",tolower(map$ISO2),".png', width = 35 >     <b>",map$Country,"</b> </h3>",
                                    
                                    "<table>
-                                     <tr>
+                                     <tr align = 'left'>
                                      <th>",map$Day,"</th>
                                      <th> Absolute </th>
                                      <th> Daily Growth </th>
                                      <th> per Million </th>
-                                     </tr> <tr>
+                                     </tr> <tr align= 'right'>
                                      <td>Cases</td>
                                      <td>",ifelse(is.na(map$Cases),"-", format(map$Cases, big.mark =",", nsmall = 0)),"</td>
                                      <td>",ifelse(is.na(map$CdG),"-", format(round(map$CdG,2), big.mark =",")),"% </td>
                                      <td>",ifelse(is.na(map$CpC),"-", format(round(map$CpC,2), big.mark =",")),"</td>
-                                     </tr> <tr>
+                                     </tr> <tr align= 'right'>
                                      <td>Deaths </td>
                                      <td>", ifelse(is.na(map$Deaths),"-", format(map$Deaths, big.mark =",", nsmall = 0)),"</td>
                                      <td>", ifelse(is.na(map$DdG),"-", format(round(map$DdG,2), big.mark =",")),"% </td>
                                       <td>",ifelse(is.na(map$DpC),"-", format(round(map$DpC,2), big.mark =",")),"</td>
-                                     </tr> <tr>
+                                     </tr> <tr  align= 'right'>
                                      <td>Active Cases</td>
                                      <td>",ifelse(is.na(map$Active),"-", format(map$Active, big.mark =",", nsmall = 0)),"</td>
                                      <td>",ifelse(is.na(map$AdG),"-", format(round(map$CdG,2), big.mark =",")),"% </td>
