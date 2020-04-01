@@ -41,6 +41,9 @@ datafiles <- list.files("Data")
 
 for (day in 1:length(datafiles)) {
 
+  #check if file contains data
+  if(file.size(paste0("Data/",datadays[day],".csv"))>0){
+  
   #read downloaded file
   daily       <- as.data.frame(data.table::fread(paste0("Data/",datadays[day],".csv")))
   
@@ -59,6 +62,7 @@ for (day in 1:length(datafiles)) {
     
     all <- daily
     
+  }
   }
 }
 
@@ -201,7 +205,7 @@ countries <- as.data.frame(all_countries)
 #list variables for which colorcodes should be computed
 display_vars <- c("Cases", "Active", "Deaths", "Recovered", "D2C", "A2C", "D2O", "CpC","DpC","ApC","RpC","CdG","DdG","AdG")
 
-#iterate over variables to colorcode
+#iterate over variables to colorcode and create legend
 for(i in 1:length(display_vars)){
   
   #duplicate dataset
@@ -219,5 +223,23 @@ for(i in 1:length(display_vars)){
   
   #use color code on variable
   countries[,paste0(display_vars[i],"_color")] <- pal(colordomain)
+
+  #create legends based on color
+  legend_raw <- countries[,c(display_vars[i],paste0(display_vars[i],"_color"))]
+  
+  #get upper and lower borders
+  legend <- setNames(cbind(aggregate(legend_raw[,1], by=list(legend_raw[,2]), FUN = min),aggregate(legend_raw[,1], by=list(legend_raw[,2]), FUN = max)[,2]),c("color","min","max"))
+  
+  #create label
+  legend$label <- ifelse(legend$min==legend$max,format(round(legend$min,2), big.mark =","),paste0(format(round(legend$min,2), big.mark =",")," to ", format(round(legend$max,2), big.mark =",")))
+  
+  #order and remove redundant columns
+  legend <- legend[order(legend$min),c("color","label")]
+  
+  #code for na
+  legend[legend$color=="#808080","label"] <- ("no value")
+  
+  #create legend by name
+  assign(paste0("legend_",display_vars[i]), legend)
   
 }

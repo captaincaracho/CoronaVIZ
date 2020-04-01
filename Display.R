@@ -196,6 +196,8 @@ server <- function(input, output, session) {
     
   })
   
+
+  
   
 
   observe({
@@ -246,6 +248,29 @@ server <- function(input, output, session) {
                          "Daily Growth Rate of Deaths"  = map$DdG
                          )
       
+      #Number that shows up in label
+      map_legend <- switch(input$Info, 
+                         "Cases" = legend_Cases,
+                         "Active" = legend_Active,
+                         "Deaths" = legend_Deaths,
+                         "Recovered" = legend_Recovered,
+                         
+                         "Cases per Million" = legend_CpC,
+                         "Active Cases per Million" = legend_ApC,
+                         "Deaths per Million" = legend_DpC,
+                         "Recovered Cases per Million" = legend_RpC,
+                         
+                         "Death ratio" = legend_D2C,
+                         "Active ratio" = legend_A2C,
+                         "Death ratio of Outcomes" = legend_D2O,
+                         
+                         "Daily Growth Rate of Cases"  = legend_CdG,
+                         "Daily Growth Rate of Active Cases" = legend_AdG,
+                         "Daily Growth Rate of Deaths"  = legend_DdG
+      )
+      
+      
+      
       #Explaining text next to number
       map_title <- switch(input$Info, 
                          "Cases" = "Cases",
@@ -293,6 +318,7 @@ server <- function(input, output, session) {
       leafletProxy("map", data = map) %>%
         addTiles() %>% 
         clearShapes()  %>%
+        clearControls() %>%
         addPolygons(fillColor = map$Color,
                     weight = 2,
                     opacity = 1,
@@ -347,7 +373,11 @@ server <- function(input, output, session) {
                     
                     popupOptions = popupOptions(closeOnClick = TRUE, closeButton = FALSE, autoPan = TRUE)
                                   
-                                  )
+                                  ) %>%
+        addLegend("topright", colors = unique(map_legend$color), labels = map_legend$label,
+                        title = map_title,
+                        opacity = 1
+        )
       
       
       #Timeline
