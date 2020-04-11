@@ -382,10 +382,14 @@ server <- function(input, output, session) {
       
       #Timeline
       selected_plot <- reactive({
-        countries <- countries[which(countries$Country == input$Country_plot & countries$Day >= input$Start_Day & countries$Day <=input$End_Day) , ]
+          countries %>% 
+            filter(Country %in% input$Country_plot) %>% 
+            filter(Day >= input$Start_Day) %>% 
+            filter(Day <= input$End_Day) %>%
+            arrange(desc(Country))
       })
       
-      
+    
       
       plotvar   <- switch(input$Variable_plot, 
                          "Cases" = "Cases",
@@ -411,9 +415,11 @@ server <- function(input, output, session) {
       
       output$timeline <- renderPlot({
        
-        ggplot(data = selected_plot(), aes(x=Day, y=!!as.name(plotvar), color=Country))+
+        ggplot(data = selected_plot(), aes(x=Day, y=!!as.name(plotvar), group=Country, color=Country))+
            geom_line(size=1.5)+
+           geom_point(size=3,)+
            labs(x = "Date",y = input$Variable_plot)+
+           scale_color_manual(values = unique(selected_plot()[order(selected_plot()$Country),"color_1"]))+ #sort in same order as selected data frame
            scale_x_date(labels = date_format("%m-%d"), date_breaks = "1 week")+
            theme(axis.text = element_text(size = 12),
                  axis.title = element_text(size=14),

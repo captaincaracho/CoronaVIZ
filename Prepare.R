@@ -148,6 +148,11 @@ ISO3        <- ISOcodes::ISO_3166_1[,c("Alpha_3", "Alpha_2","Name")]
 names(ISO3) <- c("ISO3","ISO2","Country")
 ISO3        <- rbind(ISO3, c("KOS","XK","Kosovo")) #XK is name in flag repo, KOS result of rworldmap::rwmGetISO3("Kosovo")
 
+#add flag colors
+flagcolors <- readRDS("flagcolors.rds")
+
+ISO3 <- merge(ISO3, flagcolors, by="ISO2")
+
 #compute basic counts of cases, deaths and recovered per country
 countries   <- setNames(aggregate.data.frame(list(all$Confirmed, all$Deaths, all$Recovered), by=list(all$'Country', all$day), FUN = sum),c("Country","Day","Cases","Deaths","Recovered"))
 
@@ -158,7 +163,7 @@ countries   <- merge(countries, ISO3, by= "Country", all=TRUE)
 countries$Country  <- ifelse(!is.na(countrycode::countrycode(countries$ISO3, "iso3c", "country.name")),countrycode::countrycode(countries$ISO3, "iso3c", "country.name"),countries$Country)
 
 #fill up countries with no cases to complete dataset
-countries <- tidyr::complete(countries, nesting(Country, ISO3, ISO2), Day )
+countries <- tidyr::complete(countries, nesting(Country, ISO3, ISO2, color_1, color_2, color_3), Day )
 countries <- countries[!is.na(countries$Day),]
 
 #add population information from workdbank
