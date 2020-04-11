@@ -20,21 +20,36 @@ datadays <- as.character(format(as.Date(as.Date("01-22-2020", format = "%m-%d-%Y
 if(!dir.exists("Data")){
   dir.create("Data")
 }
-  
-#download data
+
+#get date of last general update
+last_update <- as.Date(read.table("last_general_update.txt",stringsAsFactors = FALSE)[1,1])
+
+#check whether general update is necessary
+if(last_update < Sys.Date()) {
+  general_update <- TRUE #set condition for loop
+  write.table(Sys.Date(),"last_general_update.txt", row.names = FALSE, col.names = FALSE) #update last update file
+}
+
+#download data for individual days
 for (dayfile in 1:length(datadays)) {
   
-  #limit download to new data
-  if(!file.exists(paste0("Data/",datadays[dayfile],".csv"))){
   
-  #download file
-  tryCatch(download.file(url=paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/",datadays[dayfile],".csv"), destfile = paste0("Data/",datadays[dayfile],".csv")),error = function(e){})
+  if(general_update == TRUE){
+    
+    #download file
+    tryCatch(download.file(url=paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/",datadays[dayfile],".csv"), destfile = paste0("Data/",datadays[dayfile],".csv")),error = function(e){})
+    
+  }else if((general_update == FALSE) & (!file.exists(paste0("Data/",datadays[dayfile],".csv")))){
+  
+    #download file
+    tryCatch(download.file(url=paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/",datadays[dayfile],".csv"), destfile = paste0("Data/",datadays[dayfile],".csv")),error = function(e){})
 
   }
-    
+
 }
   
-  
+
+
 #bind data
 datafiles <- list.files("Data")
 
