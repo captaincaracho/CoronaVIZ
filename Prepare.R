@@ -182,10 +182,10 @@ countries$A2C    <- ifelse(countries$Cases>=100,countries$Active/countries$Cases
 countries$D2O    <- ifelse(countries$Cases>=100,countries$Deaths/(countries$Recovered + countries$Deaths) * 100,NA)
 
 #compute per capita ratios
-countries$CpC    <- ifelse(countries$Cases>=100,countries$Cases/(countries$pop_2018/1000000),NA)
-countries$DpC    <- ifelse(countries$Cases>=100,countries$Deaths/(countries$pop_2018/1000000),NA)
-countries$ApC    <- ifelse(countries$Cases>=100,countries$Active/(countries$pop_2018/1000000),NA)
-countries$RpC    <- ifelse(countries$Cases>=100,countries$Recovered/(countries$pop_2018/1000000),NA)
+countries$CpC    <- countries$Cases/(countries$pop_2018/1000000)
+countries$DpC    <- countries$Deaths/(countries$pop_2018/1000000)
+countries$ApC    <- countries$Active/(countries$pop_2018/1000000)
+countries$RpC    <- countries$Recovered/(countries$pop_2018/1000000)
 
 #compute growth rates
 countries <- countries[order(countries$Day),]

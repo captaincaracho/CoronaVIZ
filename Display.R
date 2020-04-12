@@ -34,13 +34,21 @@ sidebar <- dashboardSidebar(
 
 
 body <- dashboardBody(
+  
+  #tags$style(type = "text/css", "#map {height: calc(100vh - 20vh) !important;}"),
+  
   tabItems(
     tabItem(tabName = "map",
-            leafletOutput("map", width = "100%", height = 800),
+            leafletOutput("map", width = "100%", height = "80vh"),
 
-      
+            absolutePanel(top = '10%', right = '70%', height = "10vh", width =  "25vh", fixed = FALSE,
+               
+             textOutput("text1")
+                                     
+            ),             
             
-            absolutePanel(top = '90%', right = '70%', height = 100, width =  250, fixed = FALSE,
+            
+            absolutePanel(top = '90%', right = '70%', height = "10vh", width =  "25vh", fixed = FALSE,
                             
                           setSliderColor("black", 1),
                             
@@ -48,7 +56,7 @@ body <- dashboardBody(
                                       min = min(countries$Day), max = max(countries$Day),
                                       value = max(countries$Day), step = 1,
                                       animate =
-                                        animationOptions(interval = 3000, loop = FALSE))
+                                        animationOptions(interval = 1000, loop = FALSE))
                         
                           
             ),  
@@ -56,7 +64,7 @@ body <- dashboardBody(
                           
                           
                                       
-            absolutePanel(top = '90%', right = '55%', height = 100, width =  250, fixed = FALSE,                        
+            absolutePanel(top = '90%', right = '55%', height = "10vh", width =  "25vh", fixed = FALSE,                        
                             selectInput(inputId = "Info", 
                                         label = "Pick a variable to display",
                                         choices = list("Absolute numbers" = list(
@@ -96,9 +104,9 @@ body <- dashboardBody(
     tabItem(tabName = "plot",
             
            
-            plotOutput("timeline", height = "700px"),
+            plotOutput("timeline", height = "80vh"),
               
-            absolutePanel(top = '80%', right = '80%', height = 100, width =  100, fixed = FALSE,
+            absolutePanel(top = '90%', right = '80%', height = "10vh", width =  "10vh", fixed = FALSE,
               
               selectInput(
                 inputId = "Country_plot",
@@ -109,7 +117,7 @@ body <- dashboardBody(
                 selected = countries[is.element(countries$Cases,sort(countries[which(countries$Day==max(countries$Day,na.rm = TRUE)),"Cases"], decreasing = TRUE)[1:3]),"Country"]
               )),
               
-            absolutePanel(top = '80%', right = '65%', height = 100, width =  250, fixed = FALSE,  
+            absolutePanel(top = '90%', right = '65%', height = "10vh", width = "25vh", fixed = FALSE,  
               
               selectInput(
                 inputId = "Variable_plot",
@@ -140,7 +148,7 @@ body <- dashboardBody(
                 selected = "Cases"
               )),
             
-            absolutePanel(top = '80%', right = '55%', height = 100, width =  150, fixed = FALSE,
+            absolutePanel(top = '90%', right = '55%', height = "10vh", width =  "15vh", fixed = FALSE,
                           
                           dateInput(inputId = "Start_Day",
                                     label = "Pick a start date",
@@ -150,7 +158,7 @@ body <- dashboardBody(
                           
             ),  
             
-            absolutePanel(top = '80%', right = '45%', height = 100, width =  150, fixed = FALSE,
+            absolutePanel(top = '90%', right = '45%', height = "10vh", width =  "15vh", fixed = FALSE,
                           
                           dateInput(inputId = "End_Day",
                                     label = "Pick an end date",
@@ -196,9 +204,7 @@ server <- function(input, output, session) {
     
   })
   
-
-  
-  
+  output$text1 <- renderText({paste("Date: ", input$Day)})
 
   observe({
       map <- joinCountryData2Map(selected(), joinCode = "ISO3",nameJoinColumn = "ISO3", verbose = TRUE)
@@ -248,7 +254,7 @@ server <- function(input, output, session) {
                          "Daily Growth Rate of Deaths"  = map$DdG
                          )
       
-      #Number that shows up in label
+      #Number that shows up in legend
       map_legend <- switch(input$Info, 
                          "Cases" = legend_Cases,
                          "Active" = legend_Active,
@@ -317,8 +323,7 @@ server <- function(input, output, session) {
       
       leafletProxy("map", data = map) %>%
         addTiles() %>% 
-        clearShapes()  %>%
-        clearControls() %>%
+        #clearControls() %>%
         addPolygons(fillColor = map$Color,
                     weight = 2,
                     opacity = 1,
@@ -331,7 +336,7 @@ server <- function(input, output, session) {
                       dashArray = "3",
                       fillOpacity = .8,
                       bringToFront = TRUE),
-                      label = paste0(map$Country,": ", ifelse(is.na(map$Info),"No data or not not enough cases for computing a quota", paste0(format(round(map$Info,2), big.mark =","), measure))),
+                      label = paste0(map$Country,": ", ifelse(is.na(map$Info),"No data or not not enough cases", paste0(format(round(map$Info,2), big.mark =","), measure))),
                     popup = paste0("<head>
                                      <style>
                                      table, th, td {
@@ -375,7 +380,7 @@ server <- function(input, output, session) {
                                   
                                   ) %>%
         addLegend("topright", colors = unique(map_legend$color), labels = map_legend$label,
-                        title = map_title,
+                        title = map_title, layerId = 1,
                         opacity = 1
         )
       
@@ -415,11 +420,14 @@ server <- function(input, output, session) {
       
       output$timeline <- renderPlot({
        
-        ggplot(data = selected_plot(), aes(x=Day, y=!!as.name(plotvar), group=Country, color=Country))+
-           geom_line(size=1.5)+
-           geom_point(size=3,)+
+        ggplot(data = selected_plot(), aes(x=Day, y=!!as.name(plotvar)))+
+           geom_line(size=1.5, aes(color=Country))+
+           geom_point(size=3, aes(fill=Country), shape = 21)+
            labs(x = "Date",y = input$Variable_plot)+
-           scale_color_manual(values = unique(selected_plot()[order(selected_plot()$Country),"color_1"]))+ #sort in same order as selected data frame
+           
+           scale_fill_manual(values = unique(selected_plot()[order(selected_plot()$Country),"color_2"]))+ #sort in same order as selected data frame
+           scale_color_manual(values = unique(selected_plot()[order(selected_plot()$Country),"color_1"]))+
+           
            scale_x_date(labels = date_format("%m-%d"), date_breaks = "1 week")+
            theme(axis.text = element_text(size = 12),
                  axis.title = element_text(size=14),
