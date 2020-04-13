@@ -23,6 +23,8 @@ if(!dir.exists("Data")){
 
 #get date of last general update
 last_update <- as.Date(read.table("last_general_update.txt",stringsAsFactors = FALSE)[1,1])
+general_update <- FALSE
+
 
 #check whether general update is necessary
 if(last_update < Sys.Date()) {

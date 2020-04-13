@@ -41,14 +41,14 @@ body <- dashboardBody(
     tabItem(tabName = "map",
             leafletOutput("map", width = "100%", height = "80vh"),
 
-            absolutePanel(top = '10%', right = '70%', height = "10vh", width =  "25vh", fixed = FALSE,
+            absolutePanel(top = '10%', left = '20vw', height = "10vh", width =  "25vh", fixed = FALSE,
                
              textOutput("text1")
                                      
             ),             
             
             
-            absolutePanel(top = '90%', right = '70%', height = "10vh", width =  "25vh", fixed = FALSE,
+            absolutePanel(top = '90%', left = '15vw', height = "10vh", width =  "20vw", fixed = FALSE,
                             
                           setSliderColor("black", 1),
                             
@@ -64,7 +64,7 @@ body <- dashboardBody(
                           
                           
                                       
-            absolutePanel(top = '90%', right = '55%', height = "10vh", width =  "25vh", fixed = FALSE,                        
+            absolutePanel(top = '90%', left = '35vw', height = "10vh", width =  "20vw", fixed = FALSE,                        
                             selectInput(inputId = "Info", 
                                         label = "Pick a variable to display",
                                         choices = list("Absolute numbers" = list(
@@ -106,7 +106,7 @@ body <- dashboardBody(
            
             plotOutput("timeline", height = "80vh"),
               
-            absolutePanel(top = '90%', right = '80%', height = "10vh", width =  "10vh", fixed = FALSE,
+            absolutePanel(top = '90%', left = '15vw', height = "10vh", width =  "20vw", fixed = FALSE,
               
               selectInput(
                 inputId = "Country_plot",
@@ -117,7 +117,7 @@ body <- dashboardBody(
                 selected = countries[is.element(countries$Cases,sort(countries[which(countries$Day==max(countries$Day,na.rm = TRUE)),"Cases"], decreasing = TRUE)[1:3]),"Country"]
               )),
               
-            absolutePanel(top = '90%', right = '65%', height = "10vh", width = "25vh", fixed = FALSE,  
+            absolutePanel(top = '90%', left = '35vw', height = "10vh", width = "15vw", fixed = FALSE,  
               
               selectInput(
                 inputId = "Variable_plot",
@@ -148,7 +148,7 @@ body <- dashboardBody(
                 selected = "Cases"
               )),
             
-            absolutePanel(top = '90%', right = '55%', height = "10vh", width =  "15vh", fixed = FALSE,
+            absolutePanel(top = '90%', left = '55vw', height = "10vh", width =  "10vw", fixed = FALSE,
                           
                           dateInput(inputId = "Start_Day",
                                     label = "Pick a start date",
@@ -158,7 +158,7 @@ body <- dashboardBody(
                           
             ),  
             
-            absolutePanel(top = '90%', right = '45%', height = "10vh", width =  "15vh", fixed = FALSE,
+            absolutePanel(top = '90%', left = '70vw', height = "10vh", width =  "10vw", fixed = FALSE,
                           
                           dateInput(inputId = "End_Day",
                                     label = "Pick an end date",
@@ -394,7 +394,14 @@ server <- function(input, output, session) {
             arrange(desc(Country))
       })
       
-    
+      selected_colors <- reactive({
+        countries %>% 
+          filter(Country %in% input$Country_plot) %>% 
+          filter(Day == input$End_Day) %>%
+          arrange(desc(Country))
+      })
+      
+      
       
       plotvar   <- switch(input$Variable_plot, 
                          "Cases" = "Cases",
@@ -425,9 +432,10 @@ server <- function(input, output, session) {
            geom_point(size=3, aes(fill=Country), shape = 21)+
            labs(x = "Date",y = input$Variable_plot)+
            
-           scale_fill_manual(values = unique(selected_plot()[order(selected_plot()$Country),"color_2"]))+ #sort in same order as selected data frame
-           scale_color_manual(values = unique(selected_plot()[order(selected_plot()$Country),"color_1"]))+
+           scale_fill_manual(values = selected_colors()[order(selected_colors()$Country),"color_2"])+ #sort in same order as selected data frame
+           scale_color_manual(values = selected_colors()[order(selected_colors()$Country),"color_1"])+ #scale_color_manual(values = selected_plot()[order(selected_plot()$Country), ][selected_plot()$Day == input$End_Day,"color1"])+
            
+          
            scale_x_date(labels = date_format("%m-%d"), date_breaks = "1 week")+
            theme(axis.text = element_text(size = 12),
                  axis.title = element_text(size=14),
