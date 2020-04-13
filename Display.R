@@ -48,7 +48,7 @@ body <- dashboardBody(
             ),             
             
             
-            absolutePanel(top = '90%', left = '15vw', height = "10vh", width =  "20vw", fixed = FALSE,
+            absolutePanel(top = '90%', left = '20vw', height = "10vh", width =  "20vw", fixed = FALSE,
                             
                           setSliderColor("black", 1),
                             
@@ -64,7 +64,7 @@ body <- dashboardBody(
                           
                           
                                       
-            absolutePanel(top = '90%', left = '35vw', height = "10vh", width =  "20vw", fixed = FALSE,                        
+            absolutePanel(top = '90%', left = '45vw', height = "10vh", width =  "20vw", fixed = FALSE,                        
                             selectInput(inputId = "Info", 
                                         label = "Pick a variable to display",
                                         choices = list("Absolute numbers" = list(
@@ -106,7 +106,7 @@ body <- dashboardBody(
            
             plotOutput("timeline", height = "80vh"),
               
-            absolutePanel(top = '90%', left = '15vw', height = "10vh", width =  "20vw", fixed = FALSE,
+            absolutePanel(top = '90%', left = '20vw', height = "10vh", width =  "20vw", fixed = FALSE,
               
               selectInput(
                 inputId = "Country_plot",
@@ -117,7 +117,7 @@ body <- dashboardBody(
                 selected = countries[is.element(countries$Cases,sort(countries[which(countries$Day==max(countries$Day,na.rm = TRUE)),"Cases"], decreasing = TRUE)[1:3]),"Country"]
               )),
               
-            absolutePanel(top = '90%', left = '35vw', height = "10vh", width = "15vw", fixed = FALSE,  
+            absolutePanel(top = '90%', left = '45vw', height = "10vh", width = "15vw", fixed = FALSE,  
               
               selectInput(
                 inputId = "Variable_plot",
@@ -148,7 +148,7 @@ body <- dashboardBody(
                 selected = "Cases"
               )),
             
-            absolutePanel(top = '90%', left = '55vw', height = "10vh", width =  "10vw", fixed = FALSE,
+            absolutePanel(top = '90%', left = '65vw', height = "10vh", width =  "10vw", fixed = FALSE,
                           
                           dateInput(inputId = "Start_Day",
                                     label = "Pick a start date",
@@ -158,7 +158,7 @@ body <- dashboardBody(
                           
             ),  
             
-            absolutePanel(top = '90%', left = '70vw', height = "10vh", width =  "10vw", fixed = FALSE,
+            absolutePanel(top = '90%', left = '80vw', height = "10vh", width =  "10vw", fixed = FALSE,
                           
                           dateInput(inputId = "End_Day",
                                     label = "Pick an end date",
