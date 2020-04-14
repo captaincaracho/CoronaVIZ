@@ -22,12 +22,12 @@ source("Prepare.R", local = TRUE)
 
 ###Shiny App
 
-header <- dashboardHeader(title = "CoronaVIZ")
+header <- dashboardHeader(title = "Covid-19 Vizualisation")
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
     menuItem("World Map", tabName = "map", icon = icon("globe")),
-    menuItem("Timeline plots", tabName = "plot", icon = icon("chart-line")),
+    menuItem("Timeline Graph", tabName = "timeline", icon = icon("chart-line")),
     menuItem("Info", tabName = "info", icon = icon("info"))
   )
 )
@@ -39,16 +39,16 @@ body <- dashboardBody(
   
   tabItems(
     tabItem(tabName = "map",
-            leafletOutput("map", width = "100%", height = "80vh"),
+            leafletOutput("map", width = "100%", height = "75vh"),
 
-            absolutePanel(top = '10%', left = '20vw', height = "10vh", width =  "25vh", fixed = FALSE,
+            absolutePanel(top = '10%', left = '20vw', height = "8vh", width =  "25vh", fixed = FALSE,
                
              textOutput("text1")
                                      
             ),             
             
             
-            absolutePanel(top = '90%', left = '20vw', height = "10vh", width =  "20vw", fixed = FALSE,
+            absolutePanel(top = '85vh', left = '20vw', height = "8vh", width =  "20vw", fixed = FALSE,
                             
                           setSliderColor("black", 1),
                             
@@ -64,7 +64,7 @@ body <- dashboardBody(
                           
                           
                                       
-            absolutePanel(top = '90%', left = '45vw', height = "10vh", width =  "20vw", fixed = FALSE,                        
+            absolutePanel(top = '85vh', left = '45vw', height = "8vh", width =  "20vw", fixed = FALSE,                        
                             selectInput(inputId = "Info", 
                                         label = "Pick a variable to display",
                                         choices = list("Absolute numbers" = list(
@@ -101,12 +101,12 @@ body <- dashboardBody(
            
           ),
     
-    tabItem(tabName = "plot",
+    tabItem(tabName = "timeline",
             
            
-            plotOutput("timeline", height = "80vh"),
+            plotOutput("timeline", height = "75vh"),
               
-            absolutePanel(top = '90%', left = '20vw', height = "10vh", width =  "20vw", fixed = FALSE,
+            absolutePanel(top = '85vh', left = '20vw', height = "8vh", width =  "20vw", fixed = FALSE,
               
               selectInput(
                 inputId = "Country_plot",
@@ -117,7 +117,7 @@ body <- dashboardBody(
                 selected = countries[is.element(countries$Cases,sort(countries[which(countries$Day==max(countries$Day,na.rm = TRUE)),"Cases"], decreasing = TRUE)[1:3]),"Country"]
               )),
               
-            absolutePanel(top = '90%', left = '45vw', height = "10vh", width = "15vw", fixed = FALSE,  
+            absolutePanel(top = '85vh', left = '45vw', height = "8vh", width = "15vw", fixed = FALSE,  
               
               selectInput(
                 inputId = "Variable_plot",
@@ -145,28 +145,28 @@ body <- dashboardBody(
                   "Daily Growth Rate of Deaths"  = "Daily Growth Rate of Deaths"
                 )),
                 multiple = FALSE,
-                selected = "Cases"
+                selected = "Cases",
+                selectize = FALSE,
+                size = 1
               )),
             
-            absolutePanel(top = '90%', left = '65vw', height = "10vh", width =  "10vw", fixed = FALSE,
+            absolutePanel(top = '85vh', left = '65vw', height = "8vh", width =  "20vw", fixed = FALSE,
                           
-                          dateInput(inputId = "Start_Day",
-                                    label = "Pick a start date",
-                                    format = "yyyy-mm-dd",
-                                    weekstart = 1,
-                                    value = min(countries$Day))
-                          
+                          dateRangeInput(inputId = "daterange", 
+                                         label = "Pick Start and End Dates:", 
+                                         start = min(countries$Day),
+                                         end = max(countries$Day), 
+                                         min = min(countries$Day),
+                                         max = max(countries$Day), 
+                                         format = "yyyy-mm-dd", 
+                                         startview = "month",
+                                         weekstart = 1,
+                                         language = "en", 
+                                         separator = " - ", 
+                                         width = NULL)
             ),  
             
-            absolutePanel(top = '90%', left = '80vw', height = "10vh", width =  "10vw", fixed = FALSE,
-                          
-                          dateInput(inputId = "End_Day",
-                                    label = "Pick an end date",
-                                    format = "yyyy-mm-dd",
-                                    weekstart = 1,
-                                    value = max(countries$Day))
-                          
-            ),  
+
             
             ),
     
@@ -389,15 +389,14 @@ server <- function(input, output, session) {
       selected_plot <- reactive({
           countries %>% 
             filter(Country %in% input$Country_plot) %>% 
-            filter(Day >= input$Start_Day) %>% 
-            filter(Day <= input$End_Day) %>%
+            filter(Day %in% (input$daterange[1]:input$daterange[2])) %>% 
             arrange(desc(Country))
       })
       
       selected_colors <- reactive({
         countries %>% 
           filter(Country %in% input$Country_plot) %>% 
-          filter(Day == input$End_Day) %>%
+          filter(Day == input$daterange[2]) %>%
           arrange(desc(Country))
       })
       
@@ -437,6 +436,7 @@ server <- function(input, output, session) {
            
           
            scale_x_date(labels = date_format("%m-%d"), date_breaks = "1 week")+
+           scale_y_continuous(labels = function(x) format(x, scientific = FALSE, big.mark = ","))+
            theme(axis.text = element_text(size = 12),
                  axis.title = element_text(size=14),
                  legend.title = element_text(size=14),
@@ -450,7 +450,6 @@ server <- function(input, output, session) {
       
       
       output$timestamp <- renderText(paste0(time," UTC"))
-      
       
     
     })
