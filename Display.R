@@ -73,6 +73,11 @@ body <- dashboardBody(
                                                     "Deaths" = "Deaths",
                                                     "Recovered" = "Recovered"
                                                     ),
+                                              "Daily Change in Absolute Numbers" = list(
+                                                    "New Cases Daily" = "New Cases Daily",
+                                                    "Change in Active Cases Daily" = "Change in Active Cases Daily",
+                                                    "New Deaths Daily" = "New Deaths Daily"
+                                                    ),      
                                              "Relative numbers" = list(
                                                     "Cases per Million" = "Cases per Million",
                                                     "Active Cases per Million" = "Active Cases per Million",
@@ -84,7 +89,7 @@ body <- dashboardBody(
                                                     "Active Ratio of all Cases" = "Active ratio", 
                                                     "Death Ratio of all Known Outcomes" = "Death ratio of Outcomes"
                                                     ),
-                                             "Growth Rates" = list(
+                                             "Daily Growth Rates" = list(
                                                     "Daily Growth Rate of Cases"  = "Daily Growth Rate of Cases" ,
                                                     "Daily Growth Rate of Active Cases" = "Daily Growth Rate of Active Cases",
                                                     "Daily Growth Rate of Deaths"  = "Daily Growth Rate of Deaths"
@@ -128,6 +133,11 @@ body <- dashboardBody(
                   "Deaths" = "Deaths",
                   "Recovered" = "Recovered"
                 ),
+                "Daily Change in Absolute Numbers" = list(
+                  "New Cases Daily" = "New Cases Daily",
+                  "Change in Active Cases Daily" = "Change in Active Cases Daily",
+                  "New Deaths Daily" = "New Deaths Daily"
+                ),      
                 "Relative numbers" = list(
                   "Cases per Million" = "Cases per Million",
                   "Active Cases per Million" = "Active Cases per Million",
@@ -139,7 +149,7 @@ body <- dashboardBody(
                   "Active Ratio of all Cases" = "Active ratio", 
                   "Death Ratio of all Known Outcomes" = "Death ratio of Outcomes"
                 ),
-                "Growth Rates" = list(
+                "Daily Growth Rates" = list(
                   "Daily Growth Rate of Cases"  = "Daily Growth Rate of Cases" ,
                   "Daily Growth Rate of Active Cases" = "Daily Growth Rate of Active Cases",
                   "Daily Growth Rate of Deaths"  = "Daily Growth Rate of Deaths"
@@ -216,7 +226,11 @@ server <- function(input, output, session) {
                      "Active" = map$Active_color,
                      "Deaths" = map$Deaths_color,
                      "Recovered" = map$Recovered_color,
-                      
+                     
+                     "New Cases Daily" = map$Delta_Cases_color,
+                     "Change in Active Cases Daily" = map$Delta_Active_color,
+                     "New Deaths Daily" = map$Delta_Deaths_color,
+                     
                      "Cases per Million" = map$CpC_color,
                      "Active Cases per Million" = map$ApC_color,
                      "Deaths per Million" = map$DpC_color,
@@ -240,6 +254,10 @@ server <- function(input, output, session) {
                          "Deaths" = map$Deaths,
                          "Recovered" = map$Recovered,
                          
+                         "New Cases Daily" = map$Delta_Cases,
+                         "Change in Active Cases Daily" = map$Delta_Active,
+                         "New Deaths Daily" = map$Delta_Deaths,
+                         
                          "Cases per Million" = map$CpC,
                          "Active Cases per Million" = map$ApC,
                          "Deaths per Million" = map$DpC,
@@ -260,6 +278,10 @@ server <- function(input, output, session) {
                          "Active" = legend_Active,
                          "Deaths" = legend_Deaths,
                          "Recovered" = legend_Recovered,
+                         
+                         "New Cases Daily" = legend_Delta_Cases,
+                         "Change in Active Cases Daily" = legend_Delta_Active,
+                         "New Deaths Daily" = legend_Delta_Deaths,
                          
                          "Cases per Million" = legend_CpC,
                          "Active Cases per Million" = legend_ApC,
@@ -284,6 +306,10 @@ server <- function(input, output, session) {
                          "Deaths" = "Deaths",
                          "Recovered" = "Recovered",
                          
+                         "New Cases Daily" = "New Cases Daily",
+                         "Change in Active Cases Daily" = "New Active Cases Daily",
+                         "New Deaths Daily" = "New Deaths Daily",
+                         
                          "Cases per Million" = "Cases per Million Inhabitants",
                          "Active Cases per Million" = "Active Cases per Million Inhabitants",
                          "Deaths per Million" = "Deaths per Million Inhabitant",
@@ -303,6 +329,10 @@ server <- function(input, output, session) {
                          "Active" = "",
                          "Deaths" = "",
                          "Recovered" = "",
+                         
+                         "New Cases Daily" = "",
+                         "Change in Active Cases Daily" = "",
+                         "New Deaths Daily" = "",
                          
                          "Cases per Million" = "",
                          "Active Cases per Million" = "",
@@ -355,28 +385,32 @@ server <- function(input, output, session) {
                                      <tr align = 'left'>
                                      <th>",map$Day,"</th>
                                      <th> Absolute </th>
+                                     <th> Daily Change  </th>
                                      <th> Daily Growth </th>
                                      <th> per Million </th>
                                      </tr> <tr align= 'right'>
                                      <td>Cases</td>
                                      <td>",ifelse(is.na(map$Cases),"-", format(map$Cases, big.mark =",", nsmall = 0)),"</td>
+                                     <td>",ifelse(is.na(map$Delta_Cases),"-", format(map$Delta_Cases, big.mark =",", nsmall = 0)),"</td>
                                      <td>",ifelse(is.na(map$CdG),"-", format(round(map$CdG,2), big.mark =",")),"% </td>
                                      <td>",ifelse(is.na(map$CpC),"-", format(round(map$CpC,2), big.mark =",")),"</td>
                                      </tr> <tr align= 'right'>
                                      <td>Deaths </td>
                                      <td>", ifelse(is.na(map$Deaths),"-", format(map$Deaths, big.mark =",", nsmall = 0)),"</td>
+                                     <td>", ifelse(is.na(map$Delta_Deaths),"-", format(map$Delta_Deaths, big.mark =",", nsmall = 0)),"</td>
                                      <td>", ifelse(is.na(map$DdG),"-", format(round(map$DdG,2), big.mark =",")),"% </td>
                                       <td>",ifelse(is.na(map$DpC),"-", format(round(map$DpC,2), big.mark =",")),"</td>
                                      </tr> <tr  align= 'right'>
                                      <td>Active Cases</td>
                                      <td>",ifelse(is.na(map$Active),"-", format(map$Active, big.mark =",", nsmall = 0)),"</td>
+                                     <td>",ifelse(is.na(map$Delta_Active),"-", format(map$Delta_Active, big.mark =",", nsmall = 0)),"</td>
                                      <td>",ifelse(is.na(map$AdG),"-", format(round(map$CdG,2), big.mark =",")),"% </td>
                                      <td>",ifelse(is.na(map$ApC),"-", format(round(map$ApC,2), big.mark =",")),"</td>
                                      </tr>
                                     </table>"
                                    ),
                     
-                    popupOptions = popupOptions(closeOnClick = TRUE, closeButton = FALSE, autoPan = TRUE)
+                    popupOptions = popupOptions(closeOnClick = TRUE, closeButton = FALSE, autoPan = TRUE, minWidth = 400)
                                   
                                   ) %>%
         addLegend("topright", colors = unique(map_legend$color), labels = map_legend$label,
@@ -408,6 +442,10 @@ server <- function(input, output, session) {
                          "Deaths" = "Deaths",
                          "Recovered" = "Recovered",
                          
+                         "New Cases Daily" = "Delta_Cases",
+                         "Change in Active Cases Daily" = "Delta_Active",
+                         "New Deaths Daily" = "Delta_Deaths",
+                        
                          "Cases per Million" = "CpC",
                          "Active Cases per Million" = "ApC",
                          "Deaths per Million" = "DpC",

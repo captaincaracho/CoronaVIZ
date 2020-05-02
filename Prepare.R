@@ -5,7 +5,7 @@
 
 #save timestamp
 time                     <- Sys.time()
-attr(time, "tzone") <- "UTC"
+attr(time, "tzone")      <- "UTC"
 
 #read population data
 pop          <- read.csv("API_SP.POP.TOTL_DS2_en_csv_v2_821007.csv", skip = 4, stringsAsFactors = FALSE)
@@ -196,9 +196,12 @@ countries <- countries[order(countries$Day),]
 countrylist <- unique(countries$Country)
 
 #intitiate variables
-countries$CdG <- NA
-countries$DdG <- NA
-countries$AdG <- NA
+countries$Delta_Cases  <- NA
+countries$Delta_Deaths <- NA
+countries$Delta_Active <- NA
+countries$CdG          <- NA
+countries$DdG          <- NA
+countries$AdG          <- NA
 
 #iterate over countries
 for(country in 1:length(countrylist)){
@@ -206,10 +209,15 @@ for(country in 1:length(countrylist)){
   #select country to calculate growth rates for
   focus <- countries[which(countries$Country==countrylist[country]),]
   
+  #calculate daily change
+  focus[,"Delta_Cases"]  <- c(NA,diff(focus[,"Cases"]))
+  focus[,"Delta_Deaths"] <- c(NA,diff(focus[,"Deaths"]))
+  focus[,"Delta_Active"] <- c(NA,diff(focus[,"Active"]))
+  
   #calculate growth rates
-  focus[,"CdG"] <- ifelse(focus$Cases>=100, as.vector(c(NA,diff(focus[,"Cases"]))/dplyr::lag(focus[,"Cases"]))*100,NA)
-  focus[,"DdG"] <- ifelse(focus$Cases>=100, as.vector(c(NA,diff(focus[,"Deaths"]))/dplyr::lag(focus[,"Deaths"]))*100,NA)
-  focus[,"AdG"] <- ifelse(focus$Cases>=100, as.vector(c(NA,diff(focus[,"Active"]))/dplyr::lag(focus[,"Active"]))*100,NA)
+  focus[,"CdG"] <- ifelse(focus$Cases>=100, as.vector(focus[,"Delta_Cases"]/dplyr::lag(focus[,"Cases"]))*100,NA)
+  focus[,"DdG"] <- ifelse(focus$Cases>=100, as.vector(focus[,"Delta_Deaths"]/dplyr::lag(focus[,"Deaths"]))*100,NA)
+  focus[,"AdG"] <- ifelse(focus$Cases>=100, as.vector(focus[,"Delta_Active"]/dplyr::lag(focus[,"Active"]))*100,NA)
   
   #create empty dataset
   if(country==1){
@@ -225,7 +233,7 @@ for(country in 1:length(countrylist)){
 countries <- as.data.frame(all_countries)
 
 #list variables for which colorcodes should be computed
-display_vars <- c("Cases", "Active", "Deaths", "Recovered", "D2C", "A2C", "D2O", "CpC","DpC","ApC","RpC","CdG","DdG","AdG")
+display_vars <- c("Cases", "Active", "Deaths", "Recovered", "D2C", "A2C", "D2O", "CpC","DpC","ApC","RpC","Delta_Cases", "Delta_Deaths", "Delta_Active","CdG","DdG","AdG")
 
 #iterate over variables to colorcode and create legend
 for(i in 1:length(display_vars)){
