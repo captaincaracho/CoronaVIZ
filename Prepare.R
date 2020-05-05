@@ -245,6 +245,13 @@ for(i in 1:length(display_vars)){
   coloring[is.infinite(coloring[,display_vars[i]]) & coloring[,display_vars[i]] >0 ,display_vars[i]] <-  max(coloring[!is.infinite(coloring[,display_vars[i]]),display_vars[i]],na.rm = TRUE)
   coloring[is.infinite(coloring[,display_vars[i]]) & coloring[,display_vars[i]] <0 ,display_vars[i]] <-  min(coloring[!is.infinite(coloring[,display_vars[i]]),display_vars[i]],na.rm = TRUE)
   
+  if(is.element(display_vars[i],c("Delta_Cases","Delta_Deaths"))){
+  
+  #for change of cases and deaths, make 0 the min
+  coloring[which(coloring[,display_vars[i]] < 0) ,display_vars[i]] <- 0
+  
+  }
+  
   #create color scale basic variable by log on normalized data > 0
   colordomain          <- log(BBmisc::normalize(coloring[,display_vars[i]], method = "range",margin =2,  range = c(1,100)))
   

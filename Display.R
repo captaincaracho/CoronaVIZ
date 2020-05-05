@@ -16,6 +16,7 @@ library(maptools)
 library(rworldmap)
 library(scales)
 library(ggplot2)
+library(directlabels)
 library(rsconnect)
 
 source("Prepare.R", local = TRUE)
@@ -164,7 +165,7 @@ body <- dashboardBody(
                           
                           dateRangeInput(inputId = "daterange", 
                                          label = "Pick Start and End Dates:", 
-                                         start = min(countries$Day),
+                                         start = "2020-02-01",
                                          end = max(countries$Day), 
                                          min = min(countries$Day),
                                          max = max(countries$Day), 
@@ -467,6 +468,9 @@ server <- function(input, output, session) {
         ggplot(data = selected_plot(), aes(x=Day, y=!!as.name(plotvar)))+
            geom_line(size=1.5, aes(color=Country))+
            geom_point(size=3, aes(fill=Country), shape = 21)+
+           geom_dl(aes(label=Country), method= list( dl.trans(x = x+0.2), "last.bumpup", cex= 1))+
+           coord_cartesian(clip = 'off') +
+          
            labs(x = "Date",y = input$Variable_plot)+
            
            scale_fill_manual(values = selected_colors()[order(selected_colors()$Country),"color_2"])+ #sort in same order as selected data frame
