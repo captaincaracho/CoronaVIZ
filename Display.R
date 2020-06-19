@@ -119,7 +119,7 @@ body <- dashboardBody(
                 label   = "Pick Countries", 
                 choices = as.character(unique(countries$Country)),
                 multiple = TRUE,
-                #selelt top three countries in cases for default plot
+                #select top three countries in cases for default plot
                 selected = countries[is.element(countries$Cases,sort(countries[which(countries$Day==max(countries$Day,na.rm = TRUE)),"Cases"], decreasing = TRUE)[1:3]),"Country"]
               )),
               
@@ -405,7 +405,7 @@ server <- function(input, output, session) {
                                      <td>Active Cases</td>
                                      <td>",ifelse(is.na(map$Active),"-", format(map$Active, big.mark =",", nsmall = 0)),"</td>
                                      <td>",ifelse(is.na(map$Delta_Active),"-", format(map$Delta_Active, big.mark =",", nsmall = 0)),"</td>
-                                     <td>",ifelse(is.na(map$AdG),"-", format(round(map$CdG,2), big.mark =",")),"% </td>
+                                     <td>",ifelse(is.na(map$AdG),"-", format(round(map$AdG,2), big.mark =",")),"% </td>
                                      <td>",ifelse(is.na(map$ApC),"-", format(round(map$ApC,2), big.mark =",")),"</td>
                                      </tr>
                                     </table>"
