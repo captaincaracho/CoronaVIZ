@@ -235,6 +235,12 @@ countries <- as.data.frame(all_countries)
 #list variables for which colorcodes should be computed
 display_vars <- c("Cases", "Active", "Deaths", "Recovered", "D2C", "A2C", "D2O", "CpC","DpC","ApC","RpC","Delta_Cases", "Delta_Deaths", "Delta_Active","CdG","DdG","AdG")
 
+#define relative change vars
+rc_vars      <- c("CdG","DdG","AdG")
+
+#define variables that don't go below zero
+min_vars <- c("Delta_Cases","Delta_Deaths","DdG","CdG")
+
 #iterate over variables to colorcode and create legend
 for(i in 1:length(display_vars)){
   
@@ -245,18 +251,42 @@ for(i in 1:length(display_vars)){
   coloring[is.infinite(coloring[,display_vars[i]]) & coloring[,display_vars[i]] >0 ,display_vars[i]] <-  max(coloring[!is.infinite(coloring[,display_vars[i]]),display_vars[i]],na.rm = TRUE)
   coloring[is.infinite(coloring[,display_vars[i]]) & coloring[,display_vars[i]] <0 ,display_vars[i]] <-  min(coloring[!is.infinite(coloring[,display_vars[i]]),display_vars[i]],na.rm = TRUE)
   
-  if(is.element(display_vars[i],c("Delta_Cases","Delta_Deaths"))){
+  #if value can't logically be lower than zero, set zero as minimum for coloring
+  if(is.element(display_vars[i],min_vars)){
   
   #for change of cases and deaths, make 0 the min
   coloring[which(coloring[,display_vars[i]] < 0) ,display_vars[i]] <- 0
   
   }
   
+  #set coloring for count variables
+  if(!is.element(display_vars[i], rc_vars)){
+  
   #create color scale basic variable by log on normalized data > 0
   colordomain          <- log(BBmisc::normalize(coloring[,display_vars[i]], method = "range",margin =2,  range = c(1,100)))
   
   #create coloring scheme
   pal                  <- leaflet::colorBin(palette = "RdYlGn", bins = 10, domain = colordomain, reverse = TRUE)
+  
+  }
+  
+  #set coloring for relative change variables
+  if(is.element(display_vars[i], rc_vars)){
+    
+    if(!is.element(display_vars[i], min_vars)){
+    #create color scale basic variable by individually assigned breaks
+      colordomain          <- cut(coloring[,display_vars[i]],c(min(coloring[,display_vars[i]],na.rm = TRUE),-5,-1,0,1,5,10,20,50,max(coloring[,display_vars[i]], na.rm=TRUE)),include.lowest = TRUE, right= TRUE, labels = FALSE)
+    }else{
+      colordomain          <- cut(coloring[,display_vars[i]],c(0,1,2,5,10,20,50,max(coloring[,display_vars[i]], na.rm=TRUE)),include.lowest = TRUE, right= TRUE, labels = FALSE)
+    }
+    
+    #create coloring scheme
+    pal                  <- leaflet::colorBin(palette = "RdYlGn",bins = 10, domain = colordomain, reverse = TRUE)
+    
+  }
+  
+  
+  
   
   #use color code on variable
   countries[,paste0(display_vars[i],"_color")] <- pal(colordomain)
