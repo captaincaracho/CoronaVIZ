@@ -16,6 +16,21 @@ pop$pop_2018 <- as.numeric(pop$pop_2018)
 #list all expected csv files in Johns Hopkins github repo
 datadays <- as.character(format(as.Date(as.Date("01-22-2020", format = "%m-%d-%Y"):Sys.Date(), format = "%m-%d-%Y", origin="01-01-1970"),"%m-%d-%Y"))
 
+#get all current data files
+datafiles <- gsub(".csv","",list.files("Data"))
+
+#get last file index
+last_file <- match(datafiles[length(datafiles)], datadays)
+
+#get all missing files
+missing   <- datadays[!is.element(datadays, datafiles)]
+
+#get days to update: 
+#-10 days backwards from last downloaded file to most recent available date
+#-10 random days drawn with highe probability on most recent dates
+#-all missing dates
+to_update <- unique(c(datadays[c(sample((last_file-11),10, prob=1:(last_file-11), replace = FALSE),(last_file-10):length(datadays))], missing))
+
 #create data folder
 if(!dir.exists("Data")){
   dir.create("Data")
@@ -33,29 +48,28 @@ if(last_update < Sys.Date()) {
 }
 
 #download data for individual days
-for (dayfile in 1:length(datadays)) {
+for (dayfile in 1:length(to_update)) {
   
   
   if(general_update == TRUE){
     
     #download file
-    tryCatch(download.file(url=paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/",datadays[dayfile],".csv"), destfile = paste0("Data/",datadays[dayfile],".csv")),error = function(e){})
+    tryCatch(download.file(url=paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/",to_update[dayfile],".csv"), destfile = paste0("Data/",to_update[dayfile],".csv")),error = function(e){})
     
   }else if((general_update == FALSE) & (!file.exists(paste0("Data/",datadays[dayfile],".csv")))){
   
     #download file
-    tryCatch(download.file(url=paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/",datadays[dayfile],".csv"), destfile = paste0("Data/",datadays[dayfile],".csv")),error = function(e){})
+    tryCatch(download.file(url=paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/",to_update[dayfile],".csv"), destfile = paste0("Data/",to_update[dayfile],".csv")),error = function(e){})
 
   }
 
 }
   
 
-
-#bind data
+#get all data files including the recently updated
 datafiles <- list.files("Data")
 
-
+#bind data
 for (day in 1:length(datafiles)) {
 
   #check if file contains data
